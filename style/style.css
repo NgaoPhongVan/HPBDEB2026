@@ -721,12 +721,13 @@ body.phase-thatday {
 }
 
 .receipt-paper {
-  background: #fffdf9;
-  color: #1a1a1a;
+  background: #FAF8F2;
+  color: #1c1917;
   width: 100%;
-  border-radius: 4px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 77, 166, 0.25);
+  border-radius: 0;
+  filter: drop-shadow(0 20px 45px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 25px rgba(255, 77, 166, 0.2));
   animation: receiptSlideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  overflow: visible;
 }
 
 @keyframes receiptSlideUp {
@@ -740,89 +741,75 @@ body.phase-thatday {
   }
 }
 
-.receipt-zigzag-top,
-.receipt-zigzag-bottom {
+/* SVG răng cưa tam giác sắc nét ở 2 đầu */
+.receipt-teeth-top,
+.receipt-teeth-bottom {
   width: 100%;
-  height: 16px;
-  background:
-    linear-gradient(-45deg, #fffdf9 33.33%, transparent 33.33%) 0 0,
-    linear-gradient(45deg, #fffdf9 33.33%, transparent 33.33%) 0 0;
-  background-size: 16px 16px;
-  background-repeat: repeat-x;
+  height: 14px;
+  display: block;
+  line-height: 0;
+  overflow: hidden;
 }
-.receipt-zigzag-top {
-  background-color: transparent;
-  transform: scaleY(-1);
-}
-.receipt-zigzag-bottom {
-  background-color: transparent;
+
+.receipt-teeth-top svg,
+.receipt-teeth-bottom svg {
+  width: 100%;
+  height: 14px;
+  display: block;
 }
 
 .receipt-body {
-  padding: 24px 28px;
+  padding: 16px 28px 24px;
   font-family: "Courier New", Courier, monospace;
 }
 
 .receipt-logo {
   text-align: center;
-  font-size: 2.2rem;
-  margin-bottom: 6px;
+  font-size: 2.4rem;
+  margin-bottom: 4px;
 }
 
 .receipt-title {
   font-family: "Courier New", Courier, monospace;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 900;
   text-align: center;
-  letter-spacing: 2px;
-  color: #c00060;
-  margin-bottom: 4px;
+  letter-spacing: 3px;
+  color: #1e1b2e;
+  margin-bottom: 2px;
 }
 
 .receipt-subtitle {
   text-align: center;
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #555;
-  margin-bottom: 2px;
-}
-
-.receipt-address {
-  text-align: center;
-  font-size: 0.8rem;
-  color: #888;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a4a5a;
+  letter-spacing: 1px;
   margin-bottom: 12px;
 }
 
-.receipt-divider {
+.receipt-dashed-line {
   text-align: center;
-  color: #bbb;
-  font-size: 0.8rem;
-  margin: 8px 0;
-  user-select: none;
-}
-.receipt-double {
-  color: #666;
+  color: #2b2b3b;
+  font-size: 0.85rem;
   font-weight: bold;
-}
-
-.receipt-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: #666;
+  letter-spacing: 1px;
+  margin: 10px 0;
+  user-select: none;
+  overflow: hidden;
 }
 
 .receipt-items {
-  margin: 10px 0;
+  margin: 12px 0;
 }
 
 .receipt-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
-  padding: 4px 0;
-  border-bottom: 1px dotted #e5dcce;
+  align-items: baseline;
+  font-size: 0.9rem;
+  padding: 6px 0;
+  border-bottom: 1px dotted #ded7c6;
   opacity: 0;
   transform: translateX(-10px);
   transition: opacity 0.4s ease, transform 0.4s ease;
@@ -834,54 +821,53 @@ body.phase-thatday {
 }
 
 .item-name {
-  color: #444;
-  max-width: 58%;
+  color: #2b2b3b;
+  font-weight: 600;
+  max-width: 55%;
 }
 
 .item-val {
-  color: #c00060;
+  color: #4a1559;
   font-weight: 700;
   text-align: right;
-  max-width: 42%;
+  max-width: 45%;
 }
 
-.receipt-total {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 10px 0;
+.receipt-total-block {
+  text-align: center;
+  margin: 14px 0 10px;
+}
+
+.total-label {
   font-size: 1.05rem;
   font-weight: 900;
-  color: #1a1a1a;
+  letter-spacing: 1.5px;
+  color: #1e1b2e;
+  margin-bottom: 4px;
 }
 
-.total-amount {
+.total-val {
+  font-size: 1.5rem;
+  font-weight: 900;
   color: #c00060;
-  font-size: 1.2rem;
+  letter-spacing: 2px;
 }
 
-.receipt-sign {
+.receipt-footer-text {
   text-align: center;
-  font-style: italic;
-  color: #666;
-  font-size: 0.85rem;
   margin-top: 14px;
 }
 
-.receipt-thanks {
-  text-align: center;
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: #c00060;
-  margin: 8px 0;
+.thanks-msg {
+  font-size: 0.85rem;
+  color: #4a4a5a;
+  margin-bottom: 4px;
 }
 
-.receipt-barcode {
-  text-align: center;
-  letter-spacing: 4px;
+.sign-msg {
   font-size: 0.9rem;
-  color: #333;
-  margin-top: 10px;
+  font-weight: 600;
+  color: #c00060;
 }
 
 /* Nút Next to, rõ ràng, luôn nhìn thấy khi cuộn */
@@ -1225,10 +1211,12 @@ body.phase-thatday {
   transform: translateX(-50%);
 }
 
-/* Timeline FoldCard */
+/* Timeline FoldCard - Bố cục so le 2 bên trái phải chuẩn xác */
 .td-fold-card {
   position: relative;
+  width: 100%;
   margin-bottom: 50px;
+  display: flex;
   opacity: 0.1;
   transform: translateY(30px) scale(0.96);
   transition: opacity 0.6s ease, transform 0.6s ease;
@@ -1240,7 +1228,33 @@ body.phase-thatday {
   transform: translateY(0) scale(1);
 }
 
-/* Dot */
+.td-fold-card.card-left {
+  justify-content: flex-start;
+}
+
+.td-fold-card.card-right {
+  justify-content: flex-end;
+}
+
+/* Thẻ chiếm gần một nửa chiều rộng (50% - 32px) để chừa khoảng cách với trục giữa */
+.td-fold-card .td-card-box {
+  width: calc(50% - 32px);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.td-fold-card.card-right .td-card-box {
+  text-align: right;
+}
+
+.td-fold-card.card-right .td-card-header {
+  flex-direction: row-reverse;
+}
+
+/* Dot nằm chính giữa trục timeline */
 .td-card-dot {
   position: absolute;
   left: 50%;
@@ -1263,52 +1277,6 @@ body.phase-thatday {
   height: 6px;
   border-radius: 50%;
   background: var(--td-plum);
-}
-
-.td-card-flex {
-  display: flex;
-  align-items: flex-start;
-  gap: 60px;
-}
-.td-card-flex.even {
-  flex-direction: row;
-}
-.td-card-flex.odd {
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.td-card-col {
-  flex: 1;
-  min-width: 0;
-}
-
-.td-card-box {
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.03);
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.td-card-box:hover {
-  border-color: rgba(99, 29, 118, 0.25);
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
-}
-
-.td-card-body {
-  padding: 20px 24px;
-}
-
-.td-card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.td-card-flex.odd .td-card-header {
-  flex-direction: row-reverse;
 }
 
 .td-card-emoji {
@@ -2017,21 +1985,24 @@ body.phase-thatday {
   .realistic-cake { transform: scale(0.8); }
   .wish-hbd { font-size: 2.8rem; }
 
-  /* Timeline mobile */
+  /* Timeline mobile: dồn về bên phải trục timeline ở mép 20px */
   .td-timeline-line {
     left: 20px;
   }
   .td-card-dot {
     left: 20px;
   }
-  .td-card-flex {
-    flex-direction: column !important;
-    padding-left: 50px;
-    text-align: left !important;
-    gap: 12px;
+  .td-fold-card.card-left,
+  .td-fold-card.card-right {
+    justify-content: flex-start !important;
+    padding-left: 48px;
   }
-  .td-card-flex.odd .td-card-header {
-    flex-direction: row;
+  .td-fold-card .td-card-box {
+    width: 100% !important;
+    text-align: left !important;
+  }
+  .td-fold-card.card-right .td-card-header {
+    flex-direction: row !important;
   }
 
   .td-gallery-grid {

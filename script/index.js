@@ -567,9 +567,8 @@ function initThatDayTimeline() {
 
   CONFIG.timeline.forEach((item, index) => {
     const cardEl = document.createElement("div");
-    cardEl.className = "td-fold-card";
-
-    const isEven = index % 2 === 0;
+    const isLeft = index % 2 === 0;
+    cardEl.className = `td-fold-card ${isLeft ? "card-left" : "card-right"}`;
 
     const imgBtn = item.image
       ? `<button type="button" class="td-card-img-btn" data-src="${item.image}" data-title="${item.title}">
@@ -577,7 +576,8 @@ function initThatDayTimeline() {
          </button>`
       : "";
 
-    const contentBox = `
+    cardEl.innerHTML = `
+      <div class="td-card-dot"></div>
       <div class="td-card-box">
         <div class="td-card-body">
           <div class="td-card-header">
@@ -590,13 +590,6 @@ function initThatDayTimeline() {
           <p class="td-card-desc">${item.description}</p>
         </div>
         ${imgBtn}
-      </div>`;
-
-    cardEl.innerHTML = `
-      <div class="td-card-dot"></div>
-      <div class="td-card-flex ${isEven ? "even" : "odd"}">
-        <div class="td-card-col">${isEven ? contentBox : ""}</div>
-        <div class="td-card-col">${isEven ? "" : contentBox}</div>
       </div>
     `;
 
