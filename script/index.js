@@ -240,21 +240,22 @@ receiptNextBtn.addEventListener("click", () => {
       gsap.to(".section-nine", 0.7, { opacity: 1 });
       gsap.from(".section-nine p", 0.7, {
         opacity: 0, y: 20, scale: 0.5,
-        stagger: { amount: 1, from: "start" },
+        stagger: { amount: 1.2, from: "start" },
         clearProps: "all",
+        onComplete: () => {
+          // After reading finale, auto-transition to scroll world
+          setTimeout(() => transitionToScrollWorld(), 4000);
+        }
       });
     },
   });
 
-  // Small firework burst
-  for (let i = 0; i < 5; i++) {
+  // Firework burst on click
+  for (let i = 0; i < 6; i++) {
     setTimeout(() => {
       createFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight / 2));
     }, i * 350);
   }
-
-  // After finale plays a moment, transition to scroll world
-  setTimeout(() => transitionToScrollWorld(), 4500);
 });
 
 // ── Transition to scroll world ────────────────────────
