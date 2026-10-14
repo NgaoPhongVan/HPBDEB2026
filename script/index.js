@@ -198,19 +198,35 @@ function animationTimeline() {
     candles.forEach(c => c.classList.remove("out"));
     blowInstruction.style.display = "block";
     blownMessage.classList.remove("show");
+
     // Remove old candle elements
     candles = [];
     document.querySelectorAll(".candle").forEach(c => c.remove());
+
+    // Reset section-nine
+    gsap.set(".section-nine", { opacity: 0 });
+
+    // Reset receipt
+    const receiptSection = document.getElementById("sectionReceipt");
+    receiptSection.style.display = "none";
+    receiptSection.style.opacity = "1";
+    receiptSection.style.transform = "";
+    document.querySelectorAll(".receipt-item").forEach(el => el.classList.remove("visible"));
+
+    // Reset section-six
+    gsap.set(".section-six", { opacity: 1, y: 0 });
+
+    // Hide scroll world, restore timeline mode
+    scrollWorld.classList.remove("active");
+    scrollWorld.style.display = "none";
+    timelineContainer.style.display = "block";
+    timelineContainer.style.opacity = "1";
+    document.body.style.overflowY = "hidden";
 
     bgMusic.currentTime = 0;
     bgMusic.play()
       .then(() => { musicPlaying = true; musicIcon.textContent = "🔊"; })
       .catch(() => {});
-
-    // Hide scroll world, show timeline
-    scrollWorld.classList.remove("active");
-    scrollWorld.style.display = "none";
-    document.body.style.overflowY = "hidden";
 
     tl.restart();
   });
