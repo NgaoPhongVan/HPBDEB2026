@@ -221,13 +221,13 @@ function initGsapTimeline() {
     // Cake
     .from(".section-cake", 0.7, { opacity: 0, scale: 0.5 })
     .add(() => {
+      // 1. Dừng ngay nhạc từ lúc bắt đầu hiện bánh kem để mic không bị bắt tiếng nhạc từ loa
+      pauseMusicForCake();
+      // 2. Tạm dừng timeline GSAP để đợi người dùng ước và thổi nến
+      tl.pause();
+      // 3. Tạo nến và bắt đầu lắng nghe thổi nến
       createCandles();
       startMicrophoneDetection();
-    })
-    .to(".section-cake", 0.5, { opacity: 0 }, "+=8")
-    // Hiện Hóa Đơn Tình Yêu
-    .add(() => {
-      openReceiptOverlay();
     });
 
   // Replay
@@ -237,6 +237,27 @@ function initGsapTimeline() {
 // ══════════════════════════════════════════════════════
 // 5. CAKE & CANDLE BLOW (Mic or click)
 // ══════════════════════════════════════════════════════
+let wasPlayingBeforeCake = false;
+
+function pauseMusicForCake() {
+  wasPlayingBeforeCake = isMusicPlaying;
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+  isMusicPlaying = false;
+  musicIcon.textContent = "🔇";
+}
+
+function resumeMusicAfterCandles() {
+  if (wasPlayingBeforeCake && currentAudio) {
+    // Tiếp tục phát tiếp từ đoạn đã tạm dừng, TUYỆT ĐỐI KHÔNG BẮT ĐẦU LẠI
+    currentAudio.play().then(() => {
+      isMusicPlaying = true;
+      musicIcon.textContent = "🔊";
+    }).catch(() => {});
+  }
+}
+
 function createCandles() {
   if (candles.length > 0) return;
   const positions = [
@@ -269,64 +290,53 @@ function stopMicrophoneDetection() {
   isListening = false;
 }
 
-async function startMicrophoneDetection() {
+function startMicrophoneDetection() {
   if (candlesBlown || isListening) return;
 
+  // Luôn luôn gắn click fallback vào bánh kem để click là thổi tắt nến
+  setupClickFallback();
+
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    setupClickFallback();
     return;
   }
 
-  try {
-    const perm = await navigator.permissions.query({ name: "microphone" });
-    if (perm.state === "granted") {
-      requestMicPermission();
-    } else {
-      pauseExperience();
-      blowInstruction.textContent = "🎤 Nhấn vào đây để bật mic thổi nến...";
-      blowInstruction.style.animation = "pulse 2s infinite";
-      blowInstruction.addEventListener("click", requestMicPermission, { once: true });
-    }
-  } catch {
-    setupClickFallback();
-  }
-}
-
-function pauseExperience() {
-  if (tl && !tl.paused()) tl.pause();
-  if (isMusicPlaying) {
-    currentAudio.pause();
-    musicIcon.textContent = "🔇";
-  }
-}
-
-function resumeExperience() {
-  if (tl && tl.paused()) tl.resume();
-  if (isMusicPlaying) {
-    currentAudio.play();
-    musicIcon.textContent = "🔊";
+  // Nhạc đã dừng sẵn từ lúc bánh kem hiện ra, không gian yên tĩnh
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: "microphone" })
+      .then((perm) => {
+        if (perm.state === "granted") {
+          requestMicPermission();
+        } else {
+          blowInstruction.textContent = "🎤 Nhấn vào đây để bật mic thổi nến (hoặc click vào bánh)...";
+          blowInstruction.style.animation = "pulse 2s infinite";
+          blowInstruction.addEventListener("click", requestMicPermission, { once: true });
+        }
+      })
+      .catch(() => {
+        requestMicPermission();
+      });
+  } else {
+    requestMicPermission();
   }
 }
 
 function requestMicPermission() {
-  blowInstruction.textContent = "🎤 Đang xin quyền microphone...";
+  blowInstruction.textContent = "🎤 Đang kết nối mic...";
   navigator.mediaDevices
     .getUserMedia({ audio: true })
     .then((stream) => {
       micStream = stream;
       setupAudioAnalysis(stream);
-      resumeExperience();
     })
     .catch(() => {
-      setupClickFallback();
-      resumeExperience();
+      blowInstruction.textContent = "💡 Nhấn vào bánh kem để thổi tắt nến! 💡";
     });
 }
 
 function setupClickFallback() {
-  blowInstruction.textContent = "💡 Nhấn vào bánh kem để thổi nến! 💡";
-  blowInstruction.style.animation = "pulse 2s infinite";
-  cakeEl.addEventListener("click", blowCandles, { once: true });
+  cakeEl.onclick = () => {
+    blowCandles();
+  };
 }
 
 function setupAudioAnalysis(stream) {
@@ -337,34 +347,57 @@ function setupAudioAnalysis(stream) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
     micSrc   = audioCtx.createMediaStreamSource(stream);
-    analyser.smoothingTimeConstant = 0.8;
+    analyser.smoothingTimeConstant = 0.5;
     analyser.fftSize = 512;
     micSrc.connect(analyser);
 
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     isListening = true;
 
+    // Đợi 500ms để mic ổn định, tránh tiếng pop/click lúc vừa kích hoạt mic
+    let readyToDetect = false;
+    setTimeout(() => { readyToDetect = true; }, 500);
+
+    let consecutiveBlowCount = 0;
+
     function detectBlow() {
       if (!isListening || candlesBlown) {
         stopMicrophoneDetection();
         return;
       }
-      analyser.getByteFrequencyData(dataArray);
-      let sum = 0;
-      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-      const avg = sum / dataArray.length;
 
-      if (avg > 35) {
-        stopMicrophoneDetection();
-        blowCandles();
-        return;
+      if (readyToDetect) {
+        analyser.getByteFrequencyData(dataArray);
+
+        // Tiếng thổi hơi gió vào mic tạo ra dao động mạnh ở dải tần số thấp (low frequencies)
+        let lowSum = 0;
+        for (let i = 0; i < 15; i++) lowSum += dataArray[i];
+        const lowAvg = lowSum / 15;
+
+        let totalSum = 0;
+        for (let i = 0; i < dataArray.length; i++) totalSum += dataArray[i];
+        const totalAvg = totalSum / dataArray.length;
+
+        // Ngưỡng phát hiện tiếng thổi: lowAvg > 50 hoặc totalAvg > 42
+        if (lowAvg > 50 || totalAvg > 42) {
+          consecutiveBlowCount++;
+          // Cần liên tiếp 3 frame (khoảng 50ms) để chắc chắn là tiếng thổi thật, không phải click chuột
+          if (consecutiveBlowCount >= 3) {
+            stopMicrophoneDetection();
+            blowCandles();
+            return;
+          }
+        } else {
+          consecutiveBlowCount = Math.max(0, consecutiveBlowCount - 1);
+        }
       }
+
       requestAnimationFrame(detectBlow);
     }
+
     detectBlow();
   } catch {
     stopMicrophoneDetection();
-    setupClickFallback();
   }
 }
 
@@ -373,19 +406,36 @@ function blowCandles() {
   candlesBlown = true;
   stopMicrophoneDetection();
 
+  // Tắt lần lượt từng cây nến
   candles.forEach((c, i) => {
     setTimeout(() => c.classList.add("out"), i * 200);
   });
+
+  // Sau khi các cây nến tắt -> CHO NHẠC TRỞ LẠI NGAY (tiếp tục bài nhạc, không bắt đầu lại)
+  setTimeout(() => {
+    resumeMusicAfterCandles();
+  }, 400);
 
   setTimeout(() => {
     blowInstruction.style.display = "none";
     blownMessage.classList.add("show");
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       setTimeout(() => {
         createFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight / 2));
       }, i * 350);
     }
+
+    // Sau khi hiện lời chúc và pháo hoa 4 giây -> fade out bánh kem -> mở Hóa Đơn Tình Yêu
+    setTimeout(() => {
+      gsap.to(".section-cake", {
+        opacity: 0,
+        duration: 0.8,
+        onComplete: () => {
+          openReceiptOverlay();
+        },
+      });
+    }, 4000);
   }, 800);
 }
 
