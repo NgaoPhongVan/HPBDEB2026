@@ -370,10 +370,11 @@ function renderQuestion() {
   const q = quizData[quizState.current];
   if (!q) return;
 
-  const questionEl = document.getElementById('quiz-question');
-  const optionsEl  = document.getElementById('quiz-options');
-  const progressEl = document.getElementById('quiz-progress');
-  const feedbackEl = document.getElementById('quiz-feedback');
+  const questionEl   = document.getElementById('quiz-question');
+  const optionsEl    = document.getElementById('quiz-options');
+  const progressEl   = document.getElementById('quiz-progress');
+  const progressBar  = document.getElementById('quiz-progress-bar');
+  const feedbackEl   = document.getElementById('quiz-feedback');
 
   if (!questionEl) return;
 
@@ -382,7 +383,9 @@ function renderQuestion() {
   if (feedbackEl) feedbackEl.textContent = '';
   quizState.answered = false;
 
-  if (progressEl) progressEl.textContent = `Câu ${quizState.current + 1} / ${quizData.length}`;
+  const pct = ((quizState.current + 1) / quizData.length) * 100;
+  if (progressEl)  progressEl.textContent = `Câu ${quizState.current + 1} / ${quizData.length}`;
+  if (progressBar) progressBar.style.width = pct + '%';
 
   q.options.forEach((opt, i) => {
     const btn = document.createElement('button');
