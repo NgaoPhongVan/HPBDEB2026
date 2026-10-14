@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Trang web sinh nhật đặc biệt dành tặng Hạnh – em bé iu 💕">
+  <title>🎂 Sinh Nhật Em Bé Iu 2026 💕</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="./css/main.css">
+
+  <!-- Favicon emoji -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎂</text></svg>">
+</head>
+<body>
+
+<!-- ============================================
+     BACKGROUND PARTICLES
+     ============================================ -->
+<div id="particles-container"></div>
+
+<!-- ============================================
+     CANVAS LAYERS
+     ============================================ -->
+<canvas id="fireworksCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998;"></canvas>
+<canvas id="confettiCanvas"  style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9997;"></canvas>
+
+<!-- ============================================
+     PAGE TRANSITION OVERLAY
+     ============================================ -->
+<div id="page-transition" class="page-transition"></div>
+
+<!-- ============================================
+     SCREEN 1 – INTRO / LOGIN
+     ============================================ -->
+<div id="screen-intro" class="active" style="display:flex;">
+
+  <div class="card intro-card">
+    <!-- Cute cat SVG (from blue-cat-love) -->
+    <svg class="intro-cat" viewBox="0 0 498 284" xmlns="http://www.w3.org/2000/svg" fill="#ec4899" aria-hidden="true">
+      <path d="M1872 2628 c-62 -30 -158 -128 -223 -228 -83 -127 -96 -149 -133 -223 -19 -37 -38 -73 -43 -80 -5 -7 -22 -41 -38 -77 -16 -36 -45 -83 -65 -105 -136 -152 -245 -328 -300 -485 -41 -117 -65 -421 -40 -505 70 -230 133 -339 282 -484 85 -83 141 -128 195 -156 71 -37 90 -57 123 -127 53 -112 100 -147 172 -127 39 10 78 59 78 97 0 34 31 44 102 33 189 -29 304 -34 593 -22 160 7 324 17 365 22 184 25 211 28 224 23 8 -3 21 -22 29 -43 34 -83 93 -124 149 -102 30 11 80 58 132 124 34 43 41 47 81 47 24 0 56 5 71 11 39 14 72 4 80 -26 8 -33 81 -95 111 -95 45 0 143 79 158 128 9 31 39 28 67 -7 26 -32 77 -61 108 -61 33 0 98 47 125 90 14 22 25 42 25 46 0 3 6 20 14 37 13 30 60 178 92 292 7 28 21 111 30 185 25 208 9 613 -32 784 -31 126 -100 174 -289 201 -140 19 -183 31 -189 53 -3 10 -17 86 -31 168 -43 262 -84 386 -146 438 -59 50 -205 71 -319 46 -52 -12 -257 -111 -314 -152 -21 -15 -43 -28 -48 -28 -5 0 -16 -6 -23 -12 -52 -47 -43 -46 -200 -12 -100 22 -150 27 -297 29 -97 2 -181 6 -187 10 -6 3 -20 23 -30 43 -34 64 -167 199 -235 237 -53 29 -73 35 -122 35 -39 -1 -74 -8 -102 -22z" transform="scale(0.1) translate(0,0)"/>
+    </svg>
+
+    <h1 class="intro-title gradient-text">Chào Em Bé Iu! 💕</h1>
+    <p class="intro-subtitle">Nhập mật khẩu để vào trang bí mật của chúng ta nha 🔐</p>
+
+    <div class="password-group">
+      <i class="fas fa-lock icon"></i>
+      <input
+        id="password-input"
+        type="password"
+        placeholder="Nhập mật khẩu..."
+        autocomplete="off"
+      >
+    </div>
+
+    <p class="error-msg" id="password-error"></p>
+
+    <button class="btn-primary w-full" onclick="checkPassword()" style="justify-content:center;">
+      <i class="fas fa-heart"></i>
+      Vào Xem Kỷ Niệm
+      <i class="fas fa-heart" style="opacity:.7"></i>
+    </button>
+
+    <p style="margin-top:1rem;font-size:.85rem;color:#c084fc;text-align:center;">
+      Gợi ý: ngày chúng mình bắt đầu yêu nhau 💕
+    </p>
+  </div>
+
+</div>
+
+<!-- ============================================
+     SCREEN 2 – BIRTHDAY CAKE
+     ============================================ -->
+<div id="screen-cake" class="screen" style="flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem 1rem;background:linear-gradient(160deg,#fff0f6 0%,#fce7f3 60%,#fdf2f8 100%);text-align:center;">
+
+  <div class="cake-section" style="max-width:600px;width:100%;">
+    <h1 class="gradient-text" style="font-size:clamp(2rem,7vw,3.5rem);margin-bottom:.5rem;">
+      🎂 Chúc Mừng Sinh Nhật!
+    </h1>
+    <p style="color:#9d6b9a;font-size:1.1rem;margin-bottom:2rem;">
+      Em bé iu tròn <strong style="color:#ec4899;">23 tuổi</strong> rồi! Thổi nến đi em ơi! 🥳
+    </p>
+
+    <!-- Birthday Cake SVG -->
+    <div class="cake-wrapper" onclick="blowCandles()">
+      <svg id="cake-svg" viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg"
+           style="width:min(300px,85vw);height:auto;display:block;margin:0 auto;"
+           class="cake-svg-container">
+        <!-- Plate -->
+        <ellipse cx="150" cy="240" rx="130" ry="12" fill="#f3c8d9" opacity=".6"/>
+
+        <!-- Bottom tier -->
+        <rect x="30" y="175" width="240" height="60" rx="12" fill="#f9a8d4"/>
+        <rect x="30" y="175" width="240" height="20" rx="0" fill="#f472b6" opacity=".4"/>
+        <!-- Frosting drips bottom -->
+        <path d="M30,175 Q50,162 70,175 Q90,162 110,175 Q130,162 150,175 Q170,162 190,175 Q210,162 230,175 Q250,162 270,175" fill="none" stroke="white" stroke-width="8" stroke-linecap="round"/>
+        <!-- Decorations bottom -->
+        <circle cx="75"  cy="205" r="6" fill="#fbbf24"/>
+        <circle cx="150" cy="205" r="6" fill="#a855f7"/>
+        <circle cx="225" cy="205" r="6" fill="#06b6d4"/>
+
+        <!-- Middle tier -->
+        <rect x="55" y="120" width="190" height="58" rx="12" fill="#fbc2e0"/>
+        <rect x="55" y="120" width="190" height="18" rx="0" fill="#f9a8d4" opacity=".5"/>
+        <!-- Frosting drips middle -->
+        <path d="M55,120 Q75,108 95,120 Q115,108 135,120 Q155,108 175,120 Q195,108 215,120 Q235,108 245,120" fill="none" stroke="white" stroke-width="7" stroke-linecap="round"/>
+
+        <!-- Top tier -->
+        <rect x="90" y="75" width="120" height="48" rx="12" fill="#fce7f3"/>
+        <rect x="90" y="75" width="120" height="15" rx="0" fill="#fbc2e0" opacity=".5"/>
+        <!-- Frosting drips top -->
+        <path d="M90,75 Q105,64 120,75 Q135,64 150,75 Q165,64 180,75 Q195,64 210,75" fill="none" stroke="white" stroke-width="6" stroke-linecap="round"/>
+
+        <!-- Heart decoration on top tier -->
+        <text x="150" y="108" text-anchor="middle" font-size="22">💕</text>
+
+        <!-- Candles -->
+        <!-- Candle 1 -->
+        <rect x="108" y="42" width="10" height="34" rx="3" fill="#fbbf24"/>
+        <ellipse class="candle-flame" cx="113" cy="40" rx="6" ry="9" fill="#f97316" opacity=".9"/>
+        <ellipse class="candle-flame" cx="113" cy="43" rx="3" ry="5" fill="#fef9c3"/>
+        <path class="candle-smoke" d="M113,30 Q118,20 113,10" fill="none" stroke="#aaa" stroke-width="2" opacity=".7"/>
+
+        <!-- Candle 2 -->
+        <rect x="143" y="35" width="10" height="41" rx="3" fill="#ec4899"/>
+        <ellipse class="candle-flame" cx="148" cy="33" rx="6" ry="9" fill="#f97316" opacity=".9"/>
+        <ellipse class="candle-flame" cx="148" cy="36" rx="3" ry="5" fill="#fef9c3"/>
+        <path class="candle-smoke" d="M148,23 Q153,13 148,3" fill="none" stroke="#aaa" stroke-width="2" opacity=".7"/>
+
+        <!-- Candle 3 -->
+        <rect x="178" y="42" width="10" height="34" rx="3" fill="#a855f7"/>
+        <ellipse class="candle-flame" cx="183" cy="40" rx="6" ry="9" fill="#f97316" opacity=".9"/>
+        <ellipse class="candle-flame" cx="183" cy="43" rx="3" ry="5" fill="#fef9c3"/>
+        <path class="candle-smoke" d="M183,30 Q188,20 183,10" fill="none" stroke="#aaa" stroke-width="2" opacity=".7"/>
+
+        <!-- Sprinkles -->
+        <rect x="60"  y="195" width="8" height="3" rx="2" fill="#ec4899" transform="rotate(30,64,196)"/>
+        <rect x="95"  y="188" width="8" height="3" rx="2" fill="#fbbf24" transform="rotate(-20,99,190)"/>
+        <rect x="200" y="192" width="8" height="3" rx="2" fill="#a855f7" transform="rotate(15,204,193)"/>
+        <rect x="240" y="185" width="8" height="3" rx="2" fill="#06b6d4" transform="rotate(-30,244,186)"/>
+        <rect x="120" y="148" width="7" height="3" rx="2" fill="#f97316" transform="rotate(20,124,149)"/>
+        <rect x="175" y="145" width="7" height="3" rx="2" fill="#ec4899" transform="rotate(-15,179,146)"/>
+      </svg>
+    </div>
+
+    <p id="blow-instruction" class="blow-instruction">
+      👆 Chạm / Click vào bánh để thổi nến nhé! 🕯️
+    </p>
+
+    <p style="margin-top:1.5rem;color:#c084fc;font-size:.9rem;">
+      (Sau khi thổi nến sẽ có bí mật đặc biệt 🎁)
+    </p>
+  </div>
+
+</div>
+
+<!-- ============================================
+     SCREEN 3 – LOVE RECEIPT
+     ============================================ -->
+<div id="screen-receipt" class="screen" style="flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:3rem 1rem;background:linear-gradient(160deg,#fff7f0 0%,#fce7f3 60%,#fdf2f8 100%);">
+
+  <h2 class="gradient-text" style="font-size:clamp(1.4rem,4vw,2rem);text-align:center;margin-bottom:.5rem;">
+    🧾 Hóa Đơn Tình Yêu
+  </h2>
+  <p style="color:#9d6b9a;text-align:center;margin-bottom:2rem;font-size:.95rem;">
+    Một món quà đặc biệt từ anh gửi em! 💌
+  </p>
+
+  <div class="receipt-wrapper">
+    <div class="receipt">
+      <div class="receipt-header">
+        <span class="receipt-icon">🧾</span>
+        <div class="receipt-title" id="receipt-title">HÓA ĐƠN TÌNH YÊU</div>
+        <div class="receipt-subtitle" id="receipt-subtitle">Best Girlfriend Inc. ™</div>
+      </div>
+
+      <hr class="receipt-divider">
+
+      <div id="receipt-items">
+        <!-- Populated by JS -->
+      </div>
+
+      <hr class="receipt-divider" style="margin-top:1rem;">
+
+      <div class="receipt-total-section">
+        <div class="receipt-total-label" id="receipt-total-label">TỔNG GIÁ TRỊ TÌNH YÊU:</div>
+        <div class="receipt-total-value" id="receipt-total-value">VÔ GIÁ ❤️</div>
+      </div>
+
+      <hr class="receipt-divider">
+
+      <div class="receipt-signature" id="receipt-signature">– anh iu em 🫶</div>
+      <div class="receipt-footer" id="receipt-footer">Cảm ơn em đã chọn anh ♡</div>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="goToMainApp()" style="margin-top:2.5rem;">
+    <i class="fas fa-door-open"></i>
+    Vào Xem Thêm Kỷ Niệm
+    <i class="fas fa-arrow-right"></i>
+  </button>
+
+</div>
+
+<!-- ============================================
+     MAIN APP
+     ============================================ -->
+<div id="app">
+
+  <!-- ---- NAVIGATION ---- -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <div class="nav-logo">
+        <i class="fas fa-heart" style="animation:heartbeat 1.5s ease-in-out infinite;"></i>
+        Em Bé Iu 💕
+      </div>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#section-home"><i class="fas fa-home"></i> Trang Chủ</a></li>
+        <li><a href="#section-timeline"><i class="fas fa-clock-rotate-left"></i> Kỷ Niệm</a></li>
+        <li><a href="#section-gallery"><i class="fas fa-images"></i> Album Ảnh</a></li>
+        <li><a href="#section-message"><i class="fas fa-envelope-heart"></i> Lời Chúc</a></li>
+        <li><a href="#section-fun"><i class="fas fa-gamepad"></i> Vui Chơi</a></li>
+        <li><a href="#section-quiz"><i class="fas fa-question-circle"></i> Quiz</a></li>
+      </ul>
+
+      <div class="nav-music">
+        <button id="music-btn" class="music-btn" onclick="toggleMusic()" title="Bật/tắt nhạc">
+          <i id="music-icon" class="fas fa-music"></i>
+        </button>
+        <button id="hamburger" class="hamburger" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="#section-home"     onclick="closeMobileNav()"><i class="fas fa-home"></i> Trang Chủ</a>
+    <a href="#section-timeline" onclick="closeMobileNav()"><i class="fas fa-clock-rotate-left"></i> Kỷ Niệm</a>
+    <a href="#section-gallery"  onclick="closeMobileNav()"><i class="fas fa-images"></i> Album Ảnh</a>
+    <a href="#section-message"  onclick="closeMobileNav()"><i class="fas fa-envelope-heart"></i> Lời Chúc</a>
+    <a href="#section-fun"      onclick="closeMobileNav()"><i class="fas fa-gamepad"></i> Vui Chơi</a>
+    <a href="#section-quiz"     onclick="closeMobileNav()"><i class="fas fa-question-circle"></i> Quiz</a>
+  </nav>
+
+  <!-- Audio element -->
+  <audio id="bg-audio" loop>
+    <source src="./music/Perfect_Ed-Sheeran.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- ============================================
+       SECTION – HOME / HERO
+       ============================================ -->
+  <section id="section-home">
+    <div class="hero-content" style="max-width:700px;margin:0 auto;padding:0 1rem;">
+
+      <div class="hero-badge fade-in-section">
+        <i class="fas fa-birthday-cake"></i>
+        Chúc Mừng Sinh Nhật 2026!
+      </div>
+
+      <h1 class="hero-title gradient-text fade-in-section" style="font-size:clamp(2.5rem,8vw,4.5rem);text-align:center;line-height:1.1;">
+        Happy Birthday<br>Em Bé Iu! 🎉
+      </h1>
+
+      <p class="hero-subtitle fade-in-section" style="text-align:center;color:#9d6b9a;font-size:clamp(1rem,3vw,1.25rem);line-height:1.6;margin-bottom:1.5rem;">
+        Hôm nay em tròn <strong style="color:#ec4899;">23 tuổi</strong> – mỗi năm qua anh lại càng thấy mình may mắn vì có em trong cuộc đời 💕
+      </p>
+
+      <!-- Love counter -->
+      <div class="card fade-in-section" style="padding:1.5rem;margin:1.5rem auto;max-width:480px;">
+        <p style="text-align:center;color:#9d6b9a;font-size:.9rem;margin-bottom:1rem;">
+          ⏱️ Chúng mình đã bên nhau được...
+        </p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;text-align:center;">
+          <div>
+            <span id="counter-days" style="display:block;font-size:1.8rem;font-weight:700;color:#ec4899;">0</span>
+            <span style="font-size:.8rem;color:#9d6b9a;">Ngày</span>
+          </div>
+          <div>
+            <span id="counter-hours" style="display:block;font-size:1.8rem;font-weight:700;color:#f97316;">00</span>
+            <span style="font-size:.8rem;color:#9d6b9a;">Giờ</span>
+          </div>
+          <div>
+            <span id="counter-minutes" style="display:block;font-size:1.8rem;font-weight:700;color:#a855f7;">00</span>
+            <span style="font-size:.8rem;color:#9d6b9a;">Phút</span>
+          </div>
+          <div>
+            <span id="counter-seconds" style="display:block;font-size:1.8rem;font-weight:700;color:#06b6d4;">00</span>
+            <span style="font-size:.8rem;color:#9d6b9a;">Giây</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="hero-stats fade-in-section">
+        <div class="stat-box">
+          <span id="stat-days"   class="stat-number">0</span>
+          <div class="stat-label">Ngày Bên Nhau</div>
+        </div>
+        <div class="stat-box">
+          <span id="stat-months" class="stat-number">0</span>
+          <div class="stat-label">Tháng Yêu Nhau</div>
+        </div>
+        <div class="stat-box">
+          <span id="stat-smiles" class="stat-number">0</span>
+          <div class="stat-label">Nụ Cười 😊</div>
+        </div>
+        <div class="stat-box">
+          <span id="stat-hearts" class="stat-number">0</span>
+          <div class="stat-label">Trái Tim 💕</div>
+        </div>
+      </div>
+
+      <p class="hero-message fade-in-section" style="text-align:center;">
+        "Yêu em không phải vì em hoàn hảo, mà vì em hoàn hảo trong mắt anh 💕"
+      </p>
+
+      <div style="text-align:center;margin-top:2rem;" class="fade-in-section">
+        <a href="#section-timeline" class="btn-primary">
+          <i class="fas fa-clock-rotate-left"></i>
+          Xem Kỷ Niệm Của Chúng Mình
+          <i class="fas fa-arrow-down"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION – TIMELINE
+       ============================================ -->
+  <section id="section-timeline" style="padding:5rem 1rem;">
+    <div class="container">
+      <h2 class="section-title gradient-text fade-in-section">
+        <i class="fas fa-heart" style="color:#ec4899;"></i>
+        Hành Trình Của Chúng Mình
+        <i class="fas fa-heart" style="color:#ec4899;"></i>
+      </h2>
+      <p class="section-subtitle fade-in-section">Những kỷ niệm không thể nào quên 🌸</p>
+
+      <div class="timeline-container" id="timeline-container">
+        <div class="timeline-line"></div>
+        <div id="timeline-items">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION – GALLERY
+       ============================================ -->
+  <section id="section-gallery" style="padding:5rem 1rem;background:linear-gradient(180deg,transparent,rgba(252,231,243,.5),transparent);">
+    <div class="container">
+      <h2 class="section-title gradient-text fade-in-section">
+        <i class="fas fa-images" style="color:#ec4899;"></i>
+        Album Kỷ Niệm
+        <i class="fas fa-camera-retro" style="color:#f472b6;"></i>
+      </h2>
+      <p class="section-subtitle fade-in-section">Những khoảnh khắc đẹp của chúng mình 📸</p>
+
+      <div class="gallery-grid" id="gallery-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" onclick="if(event.target===this)closeLightbox()">
+    <div class="lightbox-inner">
+      <button class="lightbox-close" onclick="closeLightbox()">×</button>
+      <button class="lightbox-prev" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
+      <img id="lightbox-img" class="lightbox-img" src="" alt="">
+      <button class="lightbox-next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+      <p id="lightbox-caption" class="lightbox-caption"></p>
+    </div>
+  </div>
+
+  <!-- ============================================
+       SECTION – BIRTHDAY MESSAGE
+       ============================================ -->
+  <section id="section-message" style="padding:5rem 1rem;text-align:center;">
+    <div class="container">
+      <h2 class="section-title gradient-text fade-in-section">
+        <i class="fas fa-envelope-heart" style="color:#ec4899;"></i>
+        Lời Chúc Từ Anh
+        <i class="fas fa-heart" style="color:#f472b6;"></i>
+      </h2>
+      <p class="section-subtitle fade-in-section">Gửi đến em bé iu của anh 💌</p>
+
+      <div class="card message-card fade-in-section">
+        <span class="message-emoji">🎂💕🎉</span>
+        <p class="message-text" id="birthday-message"></p>
+      </div>
+
+      <div class="fade-in-section" style="margin-top:2rem;">
+        <button class="btn-primary" onclick="createHeartBurst();runConfetti(3000);">
+          <i class="fas fa-heart"></i>
+          Gửi Yêu Thương Lên Trời!
+          <i class="fas fa-heart" style="opacity:.7;"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION – FUN / INTERACTIVE
+       ============================================ -->
+  <section id="section-fun" style="padding:5rem 1rem;background:linear-gradient(180deg,transparent,rgba(252,231,243,.4),transparent);">
+    <div class="container">
+      <h2 class="section-title gradient-text fade-in-section">
+        <i class="fas fa-gamepad" style="color:#ec4899;"></i>
+        Góc Vui Chơi
+        <i class="fas fa-sparkles" style="color:#f472b6;"></i>
+      </h2>
+      <p class="section-subtitle fade-in-section">Một chút tương tác nhỏ từ anh dành cho em 🎮</p>
+
+      <div class="fun-grid fade-in-section">
+
+        <!-- Card 1: Thả tim -->
+        <div class="card fun-card">
+          <span class="fun-icon">💖</span>
+          <h3>Thả Tim Yêu</h3>
+          <p>Click để thả những trái tim bay khắp màn hình! Anh muốn em biết là anh iu em nhiều lắm!</p>
+          <button class="btn-primary" onclick="createHeartRain()">
+            <i class="fas fa-hand-pointer"></i>
+            Thả Tim!
+          </button>
+        </div>
+
+        <!-- Card 2: Lời nhắn -->
+        <div class="card fun-card">
+          <span class="fun-icon">💌</span>
+          <h3>Lời Nhắn Tình Yêu</h3>
+          <p>Nhận một lời nhắn ngọt ngào ngẫu nhiên từ anh mỗi khi em buồn hoặc nhớ anh!</p>
+          <button class="btn-primary" onclick="showRandomMessage()">
+            <i class="fas fa-gift"></i>
+            Nhận Lời Nhắn
+          </button>
+          <div id="random-msg-box"></div>
+        </div>
+
+        <!-- Card 3: Pháo hoa -->
+        <div class="card fun-card">
+          <span class="fun-icon">🎆</span>
+          <h3>Bắn Pháo Hoa!</h3>
+          <p>Sinh nhật mà thiếu pháo hoa thì sao được! Bắn pháo hoa mừng em bé iu 23 tuổi nào!</p>
+          <button class="btn-primary" onclick="startFireworks();setTimeout(stopFireworks,5000);">
+            <i class="fas fa-star"></i>
+            Bắn Pháo Hoa!
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION – QUIZ
+       ============================================ -->
+  <section id="section-quiz" style="padding:5rem 1rem;">
+    <div class="container">
+      <h2 class="section-title gradient-text fade-in-section">
+        <i class="fas fa-question-circle" style="color:#ec4899;"></i>
+        Quiz Tình Yêu
+        <i class="fas fa-heart" style="color:#f472b6;"></i>
+      </h2>
+      <p class="section-subtitle fade-in-section">Em thử trả lời những câu hỏi này xem nhé! 💕</p>
+
+      <div class="quiz-wrapper fade-in-section">
+
+        <!-- Question area -->
+        <div id="quiz-question-area">
+          <div class="card quiz-question-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+              <span id="quiz-progress" style="font-size:.9rem;color:#9d6b9a;font-weight:600;">Câu 1 / 5</span>
+              <span style="font-size:.9rem;color:#ec4899;font-weight:600;">Quiz Tình Yêu 💕</span>
+            </div>
+
+            <!-- Progress bar -->
+            <div style="width:100%;height:6px;background:rgba(244,114,182,.2);border-radius:3px;margin-bottom:1.5rem;">
+              <div id="quiz-progress-bar" style="height:100%;background:linear-gradient(90deg,#ec4899,#f472b6);border-radius:3px;width:20%;transition:width .4s ease;"></div>
+            </div>
+
+            <p id="quiz-question" class="quiz-q-text">Đang tải câu hỏi...</p>
+            <div id="quiz-options" class="quiz-options"></div>
+            <p id="quiz-feedback" style="margin-top:1rem;font-size:.95rem;font-weight:600;min-height:1.4rem;text-align:center;"></p>
+          </div>
+
+          <div class="quiz-nav">
+            <button id="quiz-next" class="btn-primary" onclick="nextQuestion()" style="display:none;">
+              Câu Tiếp Theo <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Result area -->
+        <div id="quiz-result" class="card quiz-result" style="display:none;padding:3rem 2rem;">
+          <div id="quiz-result-emoji" style="font-size:3.5rem;margin-bottom:1rem;">🏆💕</div>
+          <h3 id="quiz-result-title" class="gradient-text" style="font-size:1.8rem;margin-bottom:.75rem;">Hoàn hảo!</h3>
+          <p id="quiz-result-msg" style="color:#9d6b9a;font-size:1rem;margin-bottom:1.5rem;line-height:1.6;"></p>
+          <button class="btn-primary" onclick="restartQuiz()">
+            <i class="fas fa-redo"></i>
+            Chơi Lại Nhé!
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer>
+    <span class="footer-hearts">💕💖💗💝</span>
+    <p>Được tạo với tất cả tình yêu thương</p>
+    <p style="margin-top:.3rem;">dành tặng riêng cho <strong style="color:#ec4899;">Em Bé Iu</strong> nhân dịp sinh nhật 2026 🎂</p>
+    <p style="margin-top:.5rem;font-size:.85rem;color:#c084fc;">
+      <i class="fas fa-heart" style="color:#ec4899;"></i>
+      Từ anh – người luôn iu em bé be nhất thế giới này
+      <i class="fas fa-heart" style="color:#ec4899;"></i>
+    </p>
+  </footer>
+
+  <!-- Scroll to top -->
+  <button id="scroll-top" title="Lên đầu trang">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+</div><!-- /#app -->
+
+<!-- ============================================
+     SCRIPTS
+     ============================================ -->
+<script src="./js/config.js"></script>
+<script src="./js/main.js"></script>
+
+<script>
+  // Set birthday message
+  document.addEventListener('DOMContentLoaded', () => {
+    const msgEl = document.getElementById('birthday-message');
+    if (msgEl) msgEl.textContent = CONFIG.birthdayMessage;
+  });
+
+  // Create heart rain function
+  function createHeartRain() {
+    for (let i = 0; i < 30; i++) {
+      setTimeout(() => {
+        const h = document.createElement('div');
+        h.className = 'floating-heart';
+        h.textContent = ['💕','💖','💗','❤️','💝','🌸','✨'][Math.floor(Math.random()*7)];
+        h.style.left = Math.random() * window.innerWidth + 'px';
+        h.style.top  = Math.random() * window.innerHeight + 'px';
+        h.style.fontSize = (Math.random() * 20 + 15) + 'px';
+        h.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 3000);
+      }, i * 80);
+    }
+  }
+</script>
+
+</body>
+</html>
