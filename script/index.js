@@ -1,73 +1,86 @@
 /* =====================================================
-   HPBDEB2026 – script/index.js   (complete rewrite)
-   happybirthday GSAP flow + ThatDay scroll aesthetic
+   HPBDEB2026 - COMPLETE SCRIPT
+   Phase 1: happybirthday (patrick-paul) GSAP flow
+   Phase 2: Love Receipt (Hóa đơn tình yêu)
+   Phase 3: ThatDay (Gurkirat-Singh-bit) authentic scroll
    ===================================================== */
 "use strict";
 
-// ══════════════════════════════════════════════════════
-// ASSET PRELOADER
-// ══════════════════════════════════════════════════════
+// ── State & Variables ──
 let loadedAssets = 0;
-const TOTAL_ASSETS = 2; // profile image + audio
+const TOTAL_ASSETS = 2; // Profile picture + original hbd.mpeg audio
 
-function updateProgress() {
+const preloader       = document.getElementById("preloader");
+const loadingProgress = document.getElementById("loadingProgress");
+const loadingText     = document.getElementById("loadingText");
+const cardOverlay     = document.getElementById("cardOverlay");
+const card            = document.getElementById("birthdayCard");
+const openBtn         = document.getElementById("openBtn");
+
+const tlContainer     = document.getElementById("timelineContainer");
+const blowInstruction = document.getElementById("blowInstruction");
+const blownMessage    = document.getElementById("blownMessage");
+const cakeEl          = document.getElementById("cake");
+
+const receiptOverlay  = document.getElementById("receiptOverlay");
+const receiptNextBtn  = document.getElementById("receiptNextBtn");
+
+const thatDayApp      = document.getElementById("thatDayApp");
+const musicControl    = document.getElementById("musicControl");
+const musicIcon       = document.getElementById("musicIcon");
+
+const bgMusic         = document.getElementById("bgMusic");       // hbd.mpeg (original)
+const thatDayMusic    = document.getElementById("thatDayMusic");  // Perfect_Ed-Sheeran.mp3
+
+let currentAudio      = bgMusic;
+let isMusicPlaying    = false;
+let candlesBlown      = false;
+let candles           = [];
+let audioCtx, analyser, micSrc, micStream, isListening = false;
+let tl = null;
+let lenisInstance = null;
+
+// Thêm class ban đầu cho body
+document.body.classList.add("phase-hbd");
+
+// ══════════════════════════════════════════════════════
+// 1. PRELOADER
+// ══════════════════════════════════════════════════════
+function updatePreloader() {
   loadedAssets++;
-  const pct = (loadedAssets / TOTAL_ASSETS) * 100;
-  document.getElementById("loadingProgress").style.width = pct + "%";
-  document.getElementById("loadingText").textContent = `Đang tải... ${Math.round(pct)}%`;
+  const pct = Math.min(100, Math.round((loadedAssets / TOTAL_ASSETS) * 100));
+  loadingProgress.style.width = pct + "%";
+  loadingText.textContent = `Đang tải... ${pct}%`;
+
   if (loadedAssets >= TOTAL_ASSETS) {
     setTimeout(() => {
-      document.getElementById("preloader").classList.add("loaded");
-      document.getElementById("cardOverlay").classList.add("visible");
+      preloader.classList.add("loaded");
+      cardOverlay.classList.add("visible");
     }, 500);
   }
 }
 
+// Preload profile image
 const preImg = new Image();
-preImg.onload = preImg.onerror = updateProgress;
+preImg.onload = preImg.onerror = updatePreloader;
 preImg.src = "./images/embebecamchao.jpeg";
 
-const bgMusic = document.getElementById("bgMusic");
-bgMusic.addEventListener("canplaythrough", updateProgress, { once: true });
-bgMusic.addEventListener("error", updateProgress, { once: true });
+// Preload original audio (hbd.mpeg)
+bgMusic.addEventListener("canplaythrough", updatePreloader, { once: true });
+bgMusic.addEventListener("error", updatePreloader, { once: true });
 bgMusic.load();
 
 // ══════════════════════════════════════════════════════
-// DOM REFS
-// ══════════════════════════════════════════════════════
-const card            = document.getElementById("birthdayCard");
-const cardOverlay     = document.getElementById("cardOverlay");
-const openBtn         = document.getElementById("openBtn");
-const tlContainer     = document.getElementById("timelineContainer");
-const musicControl    = document.getElementById("musicControl");
-const musicIcon       = document.getElementById("musicIcon");
-const blowInstruction = document.getElementById("blowInstruction");
-const blownMessage    = document.getElementById("blownMessage");
-const cakeEl          = document.getElementById("cake");
-const sectionReceipt  = document.getElementById("sectionReceipt");
-const receiptNextBtn  = document.getElementById("receiptNextBtn");
-const scrollWorld     = document.getElementById("scrollWorld");
-const imgModal        = document.getElementById("imgModal");
-const imgModalBg      = document.getElementById("imgModalBg");
-const imgModalClose   = document.getElementById("imgModalClose");
-const imgModalImg     = document.getElementById("imgModalImg");
-
-// ── State ──
-let musicPlaying = false;
-let candlesBlown = false;
-let candles = [];
-let audioCtx, analyser, micSrc, micStream, isListening = false;
-let tl = null;
-
-// ══════════════════════════════════════════════════════
-// CARD FLIP  (fix: check class before flipping)
+// 2. CARD FLIP (Sửa lỗi lật mặt)
 // ══════════════════════════════════════════════════════
 card.addEventListener("click", () => {
-  if (!card.classList.contains("opened")) card.classList.add("opened");
+  if (!card.classList.contains("opened")) {
+    card.classList.add("opened");
+  }
 });
 
 // ══════════════════════════════════════════════════════
-// OPEN BUTTON → start experience
+// 3. START BUTTON -> GSAP TIMELINE
 // ══════════════════════════════════════════════════════
 openBtn.addEventListener("click", (e) => {
   e.stopPropagation();
@@ -77,52 +90,65 @@ openBtn.addEventListener("click", (e) => {
     tlContainer.classList.add("active");
     musicControl.style.display = "flex";
 
-    // ── AUDIO: exactly like happybirthday ──
-    // Play once from start, no loop on opening sequence
-    bgMusic.loop = false;
+    // Phát đúng bài nhạc hbd.mpeg của repo gốc
+    currentAudio = bgMusic;
     bgMusic.currentTime = 0;
-    bgMusic.play()
-      .then(() => { musicPlaying = true; musicIcon.textContent = "🔊"; })
-      .catch(() => { /* autoplay blocked */ });
+    bgMusic
+      .play()
+      .then(() => {
+        isMusicPlaying = true;
+        musicIcon.textContent = "🔊";
+      })
+      .catch(() => {
+        console.log("Audio autoplay prevented by browser");
+      });
 
-    // When song ends, replay softly (loop)
-    bgMusic.addEventListener("ended", () => {
-      bgMusic.currentTime = 0;
-      bgMusic.play().catch(() => {});
-    }, { once: false });
-
+    // Ambient effects
     startBalloons();
     startConfetti();
     startFireworks();
-    runAnimationTimeline();
+
+    // Chạy GSAP animation timeline
+    initGsapTimeline();
   }, 800);
 });
 
-// ── Music toggle ──
+// Music toggle
 musicControl.addEventListener("click", () => {
-  if (musicPlaying) {
-    bgMusic.pause();
+  if (isMusicPlaying) {
+    currentAudio.pause();
     musicIcon.textContent = "🔇";
-    musicPlaying = false;
+    isMusicPlaying = false;
   } else {
-    bgMusic.play();
+    currentAudio.play();
     musicIcon.textContent = "🔊";
-    musicPlaying = true;
+    isMusicPlaying = true;
   }
 });
 
 // ══════════════════════════════════════════════════════
-// GSAP ANIMATION TIMELINE (happybirthday flow)
+// 4. GSAP ANIMATION TIMELINE (patrick-paul/happybirthday)
 // ══════════════════════════════════════════════════════
-function runAnimationTimeline() {
-  // Split chatbox + wish into spans for letter-by-letter
+function initGsapTimeline() {
+  // Chuẩn hóa text chatbox
   const chatbox = document.querySelector(".hbd-chatbox");
-  const wishHbd = document.querySelector(".wish-hbd");
-  if (chatbox) {
-    chatbox.innerHTML = "<span>" + chatbox.innerHTML.split("").join("</span><span>") + "</span>";
+  if (chatbox && !chatbox.dataset.splited) {
+    chatbox.dataset.splited = "true";
+    chatbox.innerHTML = chatbox.innerHTML
+      .split("")
+      .map((ch) => `<span>${ch}</span>`)
+      .join("");
   }
-  if (wishHbd) {
-    wishHbd.innerHTML = "<span>" + wishHbd.innerHTML.split("").join("</span><span>") + "</span>";
+
+  // Chuẩn hóa text wish-hbd: Tách từng ký tự để lật chuẩn 3D, không bị méo ngược
+  const wishHbd = document.querySelector(".wish-hbd");
+  if (wishHbd && !wishHbd.dataset.splited) {
+    wishHbd.dataset.splited = "true";
+    const text = wishHbd.textContent.trim();
+    wishHbd.innerHTML = text
+      .split("")
+      .map((ch) => (ch === " " ? `<span class="hbd-char space">&nbsp;</span>` : `<span class="hbd-char">${ch}</span>`))
+      .join("");
   }
 
   const ideaIn  = { opacity: 0, y: -20, rotationX: 5, skewX: "15deg" };
@@ -132,29 +158,35 @@ function runAnimationTimeline() {
 
   tl
     .to(".timeline-container", 0.6, { visibility: "visible" })
-    .from(".section-one",  0.7, { opacity: 0, y: 10 })
-    .from(".section-two",  0.4, { opacity: 0, y: 10 })
-    .to(".section-one",    0.7, { opacity: 0, y: 10 }, "+=3")
-    .to(".section-two",    0.7, { opacity: 0, y: 10 }, "-=1")
-    .from(".section-three",0.7, { opacity: 0, y: 10 })
-    .to(".section-three",  0.7, { opacity: 0, y: 10 }, "+=2.5")
-    .from(".section-four", 0.7, { scale: 0.2, opacity: 0 })
-    .from(".fake-btn",     0.3, { scale: 1, opacity: 1 })
+    .from(".section-one",   0.7, { opacity: 0, y: 10 })
+    .from(".section-two",   0.4, { opacity: 0, y: 10 })
+    .to(".section-one",     0.7, { opacity: 0, y: 10 }, "+=3")
+    .to(".section-two",     0.7, { opacity: 0, y: 10 }, "-=1")
+    .from(".section-three", 0.7, { opacity: 0, y: 10 })
+    .to(".section-three",   0.7, { opacity: 0, y: 10 }, "+=2.5")
+    .from(".section-four",  0.7, { scale: 0.2, opacity: 0 })
+    .from(".fake-btn",      0.3, { scale: 1, opacity: 1 })
     .staggerTo(".hbd-chatbox span", 1.5, { visibility: "visible" }, 0.05)
     .to(".fake-btn", 0.1, {
-      background: "linear-gradient(135deg,#FFD54F,#FF4DA6)",
-      scale: 0.95, y: 2,
-      boxShadow: "0 2px 5px rgba(255,77,166,.4)",
+      background: "linear-gradient(135deg, #FFD54F 0%, #FF4DA6 100%)",
+      scale: 0.95,
+      y: 2,
+      boxShadow: "0 2px 5px rgba(255, 77, 166, 0.4)",
       ease: "power2.inOut",
     }, "+=3.5")
-    .to(".fake-btn", 0.2, { scale: 1, y: 0, boxShadow: "0 5px 15px rgba(255,77,166,.4)", ease: "back.out(1.7)" }, "+=0.1")
+    .to(".fake-btn", 0.2, {
+      scale: 1,
+      y: 0,
+      boxShadow: "0 5px 15px rgba(255, 77, 166, 0.4)",
+      ease: "back.out(1.7)",
+    }, "+=0.1")
     .to(".section-four", 0.5, { scale: 0.2, opacity: 0, y: -150 }, "+=1")
     .from(".idea-1", 0.7, ideaIn)
     .to(".idea-1",   0.7, ideaOut, "+=2")
     .from(".idea-2", 0.7, ideaIn)
     .to(".idea-2",   0.7, ideaOut, "+=2")
     .from(".idea-3", 0.7, ideaIn)
-    .to(".idea-3 strong", 0.5, { scale: 1.2, x: 10, boxShadow: "0 10px 30px rgba(255,77,166,.5)" })
+    .to(".idea-3 strong", 0.5, { scale: 1.2, x: 10, boxShadow: "0 10px 30px rgba(255, 77, 166, 0.5)" })
     .to(".idea-3",   0.7, ideaOut, "+=2")
     .from(".idea-4", 0.7, ideaIn)
     .to(".idea-4",   0.7, ideaOut, "+=2")
@@ -164,91 +196,143 @@ function runAnimationTimeline() {
     .staggerTo(".idea-6 span",   0.8, { scale: 3, opacity: 0, rotation: -15 }, 0.2, "+=1.5")
     .from(".section-six .profile-picture", 0.5, { scale: 3.5, opacity: 0, x: 25, y: -25, rotationZ: -45 })
     .from(".hat", 0.5, { x: -100, y: 350, rotation: -180, opacity: 0 })
-    .staggerFrom(".wish-hbd span", 0.7, { opacity: 0, y: -50, rotation: 150, skewX: "30deg" }, 0.1)
-    .staggerFromTo(".wish-hbd span", 0.7,
-      { scale: 1.4, rotationY: 150 },
-      { scale: 1, rotationY: 0, color: "#FF4DA6" },
-      0.1, "party"
+    // Animation lật chữ 3D mượt mà, đồng đều, không bị ngược
+    .staggerFromTo(
+      ".wish-hbd .hbd-char",
+      0.6,
+      {
+        opacity: 0,
+        y: -30,
+        rotationY: 90,
+        scale: 0.7,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        rotationY: 0,
+        scale: 1,
+        color: "#FF4DA6",
+        ease: "back.out(1.8)",
+      },
+      0.05
     )
-    .from(".wish h5", 0.5, { opacity: 0, y: 10, skewX: "-15deg" }, "party")
-    .to(".section-six", 0.5, { opacity: 0, y: 30 }, "+=2")
-    // ── Cake ──
+    .from(".wish h5", 0.5, { opacity: 0, y: 10, skewX: "-15deg" }, "-=0.2")
+    .to(".section-six", 0.5, { opacity: 0, y: 30 }, "+=2.5")
+    // Cake
     .from(".section-cake", 0.7, { opacity: 0, scale: 0.5 })
-    .add(() => { createCandles(); startMicDetection(); })
+    .add(() => {
+      createCandles();
+      startMicrophoneDetection();
+    })
     .to(".section-cake", 0.5, { opacity: 0 }, "+=8")
-    // ── Receipt ──
-    .add(() => showReceipt());
+    // Hiện Hóa Đơn Tình Yêu
+    .add(() => {
+      openReceiptOverlay();
+    });
 
-  // Replay button
+  // Replay
   document.getElementById("replay").addEventListener("click", replayAll);
 }
 
 // ══════════════════════════════════════════════════════
-// CANDLES
+// 5. CAKE & CANDLE BLOW (Mic or click)
 // ══════════════════════════════════════════════════════
 function createCandles() {
-  [{ left: 80, top: -20 }, { left: 125, top: -20 }, { left: 170, top: -20 }].forEach(pos => {
+  if (candles.length > 0) return;
+  const positions = [
+    { left: 80,  top: -20 },
+    { left: 125, top: -20 },
+    { left: 170, top: -20 },
+  ];
+  positions.forEach((pos) => {
     const c = document.createElement("div");
     c.className = "candle";
     c.style.left = pos.left + "px";
     c.style.top  = pos.top + "px";
-    const f = document.createElement("div");
-    f.className = "flame";
-    c.appendChild(f);
+    const flame = document.createElement("div");
+    flame.className = "flame";
+    c.appendChild(flame);
     cakeEl.appendChild(c);
     candles.push(c);
   });
 }
 
-// ══════════════════════════════════════════════════════
-// MICROPHONE DETECTION
-// ══════════════════════════════════════════════════════
-function stopMic() {
-  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-  if (audioCtx)  { audioCtx.close(); audioCtx = null; }
+function stopMicrophoneDetection() {
+  if (micStream) {
+    micStream.getTracks().forEach((t) => t.stop());
+    micStream = null;
+  }
+  if (audioCtx) {
+    audioCtx.close();
+    audioCtx = null;
+  }
   isListening = false;
 }
 
-async function startMicDetection() {
+async function startMicrophoneDetection() {
   if (candlesBlown || isListening) return;
-  if (!navigator.mediaDevices?.getUserMedia) { setupClickFallback(); return; }
-  let granted = false;
-  try { granted = (await navigator.permissions.query({ name: "microphone" })).state === "granted"; } catch {}
-  if (granted) {
-    requestMic();
-  } else {
-    pauseAll();
-    blowInstruction.textContent = "🎤 Nhấn đây để bật mic nhé...";
-    blowInstruction.style.animation = "pulse 2s infinite";
-    blowInstruction.addEventListener("click", requestMic, { once: true });
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setupClickFallback();
+    return;
+  }
+
+  try {
+    const perm = await navigator.permissions.query({ name: "microphone" });
+    if (perm.state === "granted") {
+      requestMicPermission();
+    } else {
+      pauseExperience();
+      blowInstruction.textContent = "🎤 Nhấn vào đây để bật mic thổi nến...";
+      blowInstruction.style.animation = "pulse 2s infinite";
+      blowInstruction.addEventListener("click", requestMicPermission, { once: true });
+    }
+  } catch {
+    setupClickFallback();
   }
 }
 
-function pauseAll() {
+function pauseExperience() {
   if (tl && !tl.paused()) tl.pause();
-  if (musicPlaying) { bgMusic.pause(); musicIcon.textContent = "🔇"; }
-}
-function resumeAll() {
-  if (tl && tl.paused()) tl.resume();
-  if (musicPlaying) { bgMusic.play(); musicIcon.textContent = "🔊"; }
+  if (isMusicPlaying) {
+    currentAudio.pause();
+    musicIcon.textContent = "🔇";
+  }
 }
 
-function requestMic() {
-  blowInstruction.textContent = "🎤 Đang xin quyền mic...";
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => { micStream = stream; setupAudio(stream); resumeAll(); })
-    .catch(() => { setupClickFallback(); resumeAll(); });
+function resumeExperience() {
+  if (tl && tl.paused()) tl.resume();
+  if (isMusicPlaying) {
+    currentAudio.play();
+    musicIcon.textContent = "🔊";
+  }
+}
+
+function requestMicPermission() {
+  blowInstruction.textContent = "🎤 Đang xin quyền microphone...";
+  navigator.mediaDevices
+    .getUserMedia({ audio: true })
+    .then((stream) => {
+      micStream = stream;
+      setupAudioAnalysis(stream);
+      resumeExperience();
+    })
+    .catch(() => {
+      setupClickFallback();
+      resumeExperience();
+    });
 }
 
 function setupClickFallback() {
-  blowInstruction.textContent = "💡 Nhấn vào bánh để thổi nến! 💡";
+  blowInstruction.textContent = "💡 Nhấn vào bánh kem để thổi nến! 💡";
   blowInstruction.style.animation = "pulse 2s infinite";
   cakeEl.addEventListener("click", blowCandles, { once: true });
 }
 
-function setupAudio(stream) {
-  blowInstruction.textContent = "🌬️ Thổi vào mic để thổi nến nhé! 🌬️";
+function setupAudioAnalysis(stream) {
+  blowInstruction.textContent = "🌬️ Thổi vào mic để thổi tắt nến nhé! 🌬️";
   blowInstruction.style.animation = "pulse 2s infinite";
+
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
@@ -256,451 +340,667 @@ function setupAudio(stream) {
     analyser.smoothingTimeConstant = 0.8;
     analyser.fftSize = 512;
     micSrc.connect(analyser);
-    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
     isListening = true;
-    (function detect() {
-      if (!isListening || candlesBlown) { stopMic(); return; }
-      analyser.getByteFrequencyData(data);
-      const avg = data.reduce((a, b) => a + b, 0) / data.length;
-      if (avg > 35) { stopMic(); blowCandles(); return; }
-      requestAnimationFrame(detect);
-    })();
-  } catch { stopMic(); setupClickFallback(); }
+
+    function detectBlow() {
+      if (!isListening || candlesBlown) {
+        stopMicrophoneDetection();
+        return;
+      }
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+      const avg = sum / dataArray.length;
+
+      if (avg > 35) {
+        stopMicrophoneDetection();
+        blowCandles();
+        return;
+      }
+      requestAnimationFrame(detectBlow);
+    }
+    detectBlow();
+  } catch {
+    stopMicrophoneDetection();
+    setupClickFallback();
+  }
 }
 
 function blowCandles() {
   if (candlesBlown) return;
   candlesBlown = true;
-  stopMic();
-  candles.forEach((c, i) => setTimeout(() => c.classList.add("out"), i * 200));
+  stopMicrophoneDetection();
+
+  candles.forEach((c, i) => {
+    setTimeout(() => c.classList.add("out"), i * 200);
+  });
+
   setTimeout(() => {
     blowInstruction.style.display = "none";
     blownMessage.classList.add("show");
+
     for (let i = 0; i < 6; i++) {
-      setTimeout(() => createFirework(
-        Math.random() * window.innerWidth,
-        Math.random() * (window.innerHeight / 2)
-      ), i * 400);
+      setTimeout(() => {
+        createFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight / 2));
+      }, i * 350);
     }
   }, 800);
 }
 
-// ══════════════════════════════════════════════════════
-// LOVE RECEIPT
-// ══════════════════════════════════════════════════════
-function showReceipt() {
-  sectionReceipt.style.display = "flex";
-  // Allow body to scroll so user can reach the "Tiếp theo" button on small screens
-  document.body.style.overflowY = "auto";
-  // Animate items in
-  const items = sectionReceipt.querySelectorAll(".receipt-item");
-  items.forEach((el, i) => setTimeout(() => el.classList.add("visible"), 200 + i * 130));
-  // Scroll to top so receipt is visible
-  window.scrollTo({ top: 0, behavior: "smooth" });
+// ══════════════════════════════════════════════════
+// 6. LOVE RECEIPT (HÓA ĐƠN TÌNH YÊU)
+// ══════════════════════════════════════════════════
+function openReceiptOverlay() {
+  receiptOverlay.style.display = "flex";
+
+  // Animate các dòng hóa đơn xuất hiện lần lượt
+  const rows = receiptOverlay.querySelectorAll(".receipt-row");
+  rows.forEach((row, i) => {
+    setTimeout(() => {
+      row.classList.add("visible");
+    }, 250 + i * 140);
+  });
 }
 
+// Bấm nút chuyển sang phần ThatDay
 receiptNextBtn.addEventListener("click", () => {
-  gsap.to(sectionReceipt, 0.5, {
-    opacity: 0, y: -40,
+  // Fade out receipt overlay
+  gsap.to(receiptOverlay, 0.6, {
+    opacity: 0,
+    y: -30,
     onComplete: () => {
-      sectionReceipt.style.display = "none";
-      // Show section-nine
-      gsap.to(".section-nine", 0.7, { opacity: 1 });
-      gsap.from(".section-nine p", 0.7, {
-        opacity: 0, y: 20, scale: 0.5,
-        stagger: { amount: 1.2, from: "start" },
-        clearProps: "all",
-        onComplete: () => setTimeout(transitionToScrollWorld, 4000),
-      });
+      receiptOverlay.style.display = "none";
+      transitionToThatDay();
     },
   });
-  // Burst fireworks
-  for (let i = 0; i < 6; i++) {
-    setTimeout(() => createFirework(
-      Math.random() * window.innerWidth,
-      Math.random() * (window.innerHeight / 2)
-    ), i * 350);
+
+  // Pháo hoa ăn mừng
+  for (let i = 0; i < 7; i++) {
+    setTimeout(() => {
+      createFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight * 0.5));
+    }, i * 300);
   }
 });
 
-// ══════════════════════════════════════════════════════
-// TRANSITION → SCROLL WORLD
-// ══════════════════════════════════════════════════════
-function transitionToScrollWorld() {
-  gsap.to(".timeline-container", 1, {
-    opacity: 0,
-    onComplete: () => {
-      tlContainer.style.display = "none";
-      document.body.style.overflow = "";
-      scrollWorld.style.display = "block";
-      scrollWorld.classList.add("active");
+// ══════════════════════════════════════════════════
+// 7. TRANSITION SANG THATDAY (100% AUTHENTIC)
+// ══════════════════════════════════════════════════
+function transitionToThatDay() {
+  // Ẩn timeline container cũ
+  tlContainer.style.display = "none";
+  tlContainer.classList.remove("active");
 
-      initTdParticles();
-      buildTdTimeline();
-      buildTdGallery();
-      buildTdQuiz();
-      buildTdFloatingWords();
-      initScrollObserver();
-    },
+  // Mở khóa thanh cuộn toàn bộ trang
+  document.body.classList.remove("phase-hbd");
+  document.body.classList.add("phase-thatday");
+  document.documentElement.classList.add("phase-thatday");
+
+  // Hiển thị ThatDay App
+  thatDayApp.style.display = "block";
+  window.scrollTo({ top: 0, behavior: "instant" });
+
+  // Chuyển nhạc mượt mà sang Perfect (nếu user thích)
+  if (isMusicPlaying) {
+    // Fade out bgMusic
+    gsap.to(bgMusic, {
+      volume: 0,
+      duration: 1.5,
+      onComplete: () => {
+        bgMusic.pause();
+        currentAudio = thatDayMusic;
+        thatDayMusic.volume = 1;
+        thatDayMusic.currentTime = 0;
+        thatDayMusic.play().catch(() => {});
+      },
+    });
+  } else {
+    currentAudio = thatDayMusic;
+  }
+
+  // Khởi tạo các thành phần ThatDay
+  initLenisScroll();
+  initThatDayParticles();
+  initThatDayTimeline();
+  initThatDayOrbitWords();
+  initThatDayGallery();
+  initThatDayQuiz();
+  initThatDayModal();
+  initThatDayScrollTriggers();
+}
+
+// ══════════════════════════════════════════════════
+// 8. THATDAY: LENIS SMOOTH SCROLL
+// ══════════════════════════════════════════════════
+function initLenisScroll() {
+  if (typeof Lenis === "undefined") {
+    console.warn("Lenis library not loaded, using native scroll");
+    return;
+  }
+
+  // Khởi tạo Lenis chuẩn xác như ThatDay
+  const isTouch = "ontouchstart" in window || window.matchMedia("(pointer: coarse)").matches;
+  if (isTouch) {
+    // Mobile dùng native momentum scroll mượt mà
+    return;
+  }
+
+  lenisInstance = new Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  });
+
+  function raf(time) {
+    lenisInstance.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  // Hỗ trợ anchor links cuộn êm
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetId = anchor.getAttribute("href");
+      if (targetId && targetId !== "#") {
+        const targetEl = document.querySelector(targetId);
+        if (targetEl) {
+          lenisInstance.scrollTo(targetEl, { offset: 0 });
+        }
+      }
+    });
   });
 }
 
-// ══════════════════════════════════════════════════════
-// REPLAY
-// ══════════════════════════════════════════════════════
-function replayAll() {
-  candlesBlown = false;
-  candles.forEach(c => c.classList.remove("out"));
-  blowInstruction.style.display = "block";
-  blownMessage.classList.remove("show");
-  candles = [];
-  document.querySelectorAll(".candle").forEach(c => c.remove());
+// ══════════════════════════════════════════════════
+// 9. THATDAY: FLOATING PARTICLES & TWINKLES
+// ══════════════════════════════════════════════════
+const TD_SYMBOLS = ["♥", "✦", "♡", "❋", "✧", "⋆", "❤", "✿", "❥"];
+const TD_COLORS  = [
+  "rgba(255, 170, 234, 0.16)",
+  "rgba(99, 29, 118, 0.15)",
+  "rgba(152, 193, 217, 0.14)",
+  "rgba(234, 196, 53, 0.10)",
+  "rgba(251, 77, 61, 0.10)",
+];
 
-  gsap.set(".section-nine", { opacity: 0 });
-  gsap.set(".section-six",  { opacity: 1, y: 0 });
+function initThatDayParticles() {
+  const container = document.getElementById("tdFloatingLayer");
+  if (!container || container.children.length > 0) return;
 
-  sectionReceipt.style.display = "none";
-  sectionReceipt.style.opacity = "1";
-  sectionReceipt.querySelectorAll(".receipt-item").forEach(el => el.classList.remove("visible"));
-
-  scrollWorld.classList.remove("active");
-  scrollWorld.style.display = "none";
-  tlContainer.style.display = "block";
-  tlContainer.style.opacity = "1";
-  document.body.style.overflowY = "hidden"; // back to GSAP mode
-
-  bgMusic.currentTime = 0;
-  bgMusic.play()
-    .then(() => { musicPlaying = true; musicIcon.textContent = "🔊"; })
-    .catch(() => {});
-
-  tl.restart();
-}
-
-// ══════════════════════════════════════════════════════
-// THATDAY: PARTICLES
-// ══════════════════════════════════════════════════════
-const TD_SYMBOLS = ["♥","✦","♡","❋","✧","⋆","❤","✿","❥"];
-const TD_COLORS  = ["rgba(255,170,234,.15)","rgba(99,29,118,.12)","rgba(152,193,217,.12)","rgba(234,196,53,.08)","rgba(251,77,61,.08)","rgba(255,170,234,.2)","rgba(99,29,118,.15)"];
-
-function initTdParticles() {
-  const pContainer = document.getElementById("tdParticles");
-  const sContainer = document.getElementById("tdStars");
-  const isMobile   = window.innerWidth < 640;
-  const pCount     = isMobile ? 8 : 16;
-  const sCount     = isMobile ? 10 : 25;
+  const isMobile = window.innerWidth < 640;
+  const pCount = isMobile ? 8 : 16;
+  const sCount = isMobile ? 12 : 24;
 
   for (let i = 0; i < pCount; i++) {
     const el = document.createElement("div");
-    el.className = "td-particle";
+    el.className = "td-particle-sym";
     el.textContent = TD_SYMBOLS[i % TD_SYMBOLS.length];
     el.style.left     = (2 + Math.random() * 96) + "%";
-    el.style.fontSize = (8 + Math.random() * 12) + "px";
+    el.style.fontSize = (9 + Math.random() * 14) + "px";
     el.style.color    = TD_COLORS[i % TD_COLORS.length];
     el.style.animationDuration = (14 + Math.random() * 12) + "s";
-    el.style.animationDelay   = (Math.random() * 12) + "s";
-    pContainer.appendChild(el);
+    el.style.animationDelay    = (Math.random() * 10) + "s";
+    container.appendChild(el);
   }
+
   for (let i = 0; i < sCount; i++) {
-    const el = document.createElement("div");
-    el.className = "td-star";
-    const sz = Math.random() > 0.5 ? 4 : 3;
-    el.style.left   = (2 + Math.random() * 96) + "%";
-    el.style.top    = (2 + Math.random() * 96) + "%";
-    el.style.width  = sz + "px";
-    el.style.height = sz + "px";
-    el.style.animationDuration = (2.5 + Math.random() * 2.5) + "s";
-    el.style.animationDelay   = (Math.random() * 6) + "s";
-    sContainer.appendChild(el);
+    const s = document.createElement("div");
+    s.className = "td-star-twinkle";
+    const size = Math.random() > 0.5 ? 4 : 3;
+    s.style.width  = size + "px";
+    s.style.height = size + "px";
+    s.style.left   = (2 + Math.random() * 96) + "%";
+    s.style.top    = (2 + Math.random() * 96) + "%";
+    s.style.animationDuration = (2.5 + Math.random() * 2.5) + "s";
+    s.style.animationDelay    = (Math.random() * 6) + "s";
+    container.appendChild(s);
   }
 }
 
-// ══════════════════════════════════════════════════════
-// THATDAY: FLOATING WORDS
-// ══════════════════════════════════════════════════════
-const FLOATING_WORDS = ["mãi mãi","chúng mình","yêu em","của nhau","home","forever","together","always"];
+// ══════════════════════════════════════════════════
+// 10. THATDAY: TIMELINE CARDS (FoldCard style)
+// ══════════════════════════════════════════════════
+function initThatDayTimeline() {
+  const wrapper = document.getElementById("tdTimelineCards");
+  if (!wrapper || wrapper.children.length > 0) return;
 
-function buildTdFloatingWords() {
-  const wrap = document.getElementById("tdFloatingWords");
-  FLOATING_WORDS.forEach((word, i) => {
-    const angle  = (360 / FLOATING_WORDS.length) * i;
-    const radius = 38;
-    const el = document.createElement("span");
-    el.className = "td-fw-word";
-    el.textContent = word;
-    const x = Math.cos((angle * Math.PI) / 180) * radius;
-    const y = Math.sin((angle * Math.PI) / 180) * radius;
-    el.style.transform = `translate(calc(-50% + ${x}%), calc(-50% + ${y}%))`;
-    el.style.animationDuration = (4 + i * 0.5) + "s";
-    el.style.animationDelay   = (i * 0.6) + "s";
-    wrap.appendChild(el);
-  });
-}
+  CONFIG.timeline.forEach((item, index) => {
+    const cardEl = document.createElement("div");
+    cardEl.className = "td-fold-card";
 
-// ══════════════════════════════════════════════════════
-// THATDAY: TIMELINE CARDS
-// ══════════════════════════════════════════════════════
-function buildTdTimeline() {
-  const list = document.getElementById("tdTimelineList");
-  CONFIG.timeline.forEach((item, i) => {
-    const wrap = document.createElement("div");
-    wrap.className = "td-tl-card";
+    const isEven = index % 2 === 0;
 
-    const isEven = i % 2 === 0;
-    const imgHtml = item.image
-      ? `<img class="td-tl-img" src="${item.image}" alt="${item.title}" loading="lazy" onerror="this.style.display='none'" data-src="${item.image}" />`
+    const imgBtn = item.image
+      ? `<button type="button" class="td-card-img-btn" data-src="${item.image}" data-title="${item.title}">
+           <img src="${item.image}" alt="${item.title}" class="td-card-img" loading="lazy" />
+         </button>`
       : "";
 
-    const contentHtml = `
-      <div class="td-tl-card-inner">
-        <div class="td-tl-card-body">
-          <div class="td-tl-meta">
-            <div class="td-tl-emoji">${item.emoji}</div>
-            <div>
-              <time class="td-tl-time">${item.date}</time>
-            </div>
+    const contentBox = `
+      <div class="td-card-box">
+        <div class="td-card-body">
+          <div class="td-card-header">
+            <span class="td-card-emoji">${item.emoji}</span>
+            <span class="td-card-time">${item.date}</span>
+            <span class="td-card-dot-sep">•</span>
+            <span class="td-card-date">${item.date}</span>
           </div>
-          <h3 class="td-tl-title">${item.title}</h3>
-          <p class="td-tl-desc">${item.description}</p>
+          <h3 class="td-card-title">${item.title}</h3>
+          <p class="td-card-desc">${item.description}</p>
         </div>
-        ${imgHtml}
+        ${imgBtn}
       </div>`;
 
-    wrap.innerHTML = `
-      <div class="td-tl-dot"><div class="td-tl-dot-inner"></div></div>
-      <div class="td-tl-flex ${isEven ? "even" : "odd"}">
-        <div class="td-tl-side">${isEven ? contentHtml : ""}</div>
-        <div class="td-tl-side">${isEven ? "" : contentHtml}</div>
-      </div>`;
+    cardEl.innerHTML = `
+      <div class="td-card-dot"></div>
+      <div class="td-card-flex ${isEven ? "even" : "odd"}">
+        <div class="td-card-col">${isEven ? contentBox : ""}</div>
+        <div class="td-card-col">${isEven ? "" : contentBox}</div>
+      </div>
+    `;
 
-    // Image click → modal
-    const img = wrap.querySelector(".td-tl-img");
-    if (img) img.addEventListener("click", () => openModal(img.src, item.title));
+    // Click ảnh mở modal lightbox
+    const btn = cardEl.querySelector(".td-card-img-btn");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        openThatDayModal(btn.dataset.src, btn.dataset.title);
+      });
+    }
 
-    list.appendChild(wrap);
+    wrapper.appendChild(cardEl);
   });
 }
 
-// ══════════════════════════════════════════════════════
-// THATDAY: GALLERY
-// ══════════════════════════════════════════════════════
-const GALLERY_IMGS = [
-  { src: "./images/ghephinhjpg.jpg",      alt: "Kỷ niệm" },
-  { src: "./images/embebeban.jpeg",        alt: "Em bé dễ thương" },
-  { src: "./images/embebebangoai.jpeg",    alt: "Đi dạo" },
-  { src: "./images/embebecamchao.jpeg",    alt: "Em bé" },
-  { src: "./images/embebeslay.jpeg",       alt: "Em bé slay" },
-  { src: "./images/embebeliuliu.jpeg",     alt: "Em bé liu liu" },
-  { src: "./images/embebemam.jpeg",        alt: "Em bé ăn" },
-  { src: "./images/mall1.jpg",             alt: "Đi mall" },
-  { src: "./images/mall2.jpg",             alt: "Đi mall 2" },
-  { src: "./images/samson.jpg",            alt: "Samson" },
-  { src: "./images/tet.jpg",               alt: "Tết" },
-  { src: "./images/totnghiep.jpg",         alt: "Tốt nghiệp" },
-  { src: "./images/embebeoanhbangchao.jpeg", alt: "Em bé" },
-  { src: "./images/part1.jpg",             alt: "Kỷ niệm 1" },
+// ══════════════════════════════════════════════════
+// 11. THATDAY: ORBIT WORDS (YOU & ME)
+// ══════════════════════════════════════════════════
+const TD_ORBIT_WORDS = [
+  "forever",
+  "em bé",
+  "yêu em",
+  "always",
+  "together",
+  "hạnh phúc",
+  "yours",
+  "trọn đời",
 ];
 
-function buildTdGallery() {
+function initThatDayOrbitWords() {
+  const container = document.getElementById("tdOrbitWords");
+  if (!container || container.children.length > 0) return;
+
+  const total = TD_ORBIT_WORDS.length;
+  const radius = 42; // %
+
+  TD_ORBIT_WORDS.forEach((word, i) => {
+    const angle = (360 / total) * i;
+    const rad = (angle * Math.PI) / 180;
+    const x = Math.cos(rad) * radius;
+    const y = Math.sin(rad) * radius;
+
+    const span = document.createElement("span");
+    span.className = "td-orbit-word";
+    span.textContent = word;
+    span.style.transform = `translate(calc(-50% + ${x}%), calc(-50% + ${y}%))`;
+    span.style.animationDuration = (4 + i * 0.5) + "s";
+    span.style.animationDelay    = (i * 0.6) + "s";
+    container.appendChild(span);
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 12. THATDAY: GALLERY
+// ══════════════════════════════════════════════════
+const GALLERY_ITEMS = [
+  { src: "./images/ghephinhjpg.jpg",       title: "Bức hình kỷ niệm ngọt ngào" },
+  { src: "./images/embebeban.jpeg",         title: "Em bé lúc nào cũng đáng yêu" },
+  { src: "./images/embebebangoai.jpeg",     title: "Đi chơi dạo mát cùng em bé" },
+  { src: "./images/embebecamchao.jpeg",     title: "Em bé cầm chảo cute xỉu" },
+  { src: "./images/embebeslay.jpeg",        title: "Em bé slay hết nấc ✨" },
+  { src: "./images/embebeliuliu.jpeg",      title: "Em bé liu liu nghịch ngợm" },
+  { src: "./images/embebemam.jpeg",         title: "Em bé măm măm ngon miệng" },
+  { src: "./images/mall1.jpg",              title: "Buổi đi mall đầu tiên" },
+  { src: "./images/mall2.jpg",              title: "Hẹn hò dạo phố cùng nhau" },
+  { src: "./images/samson.jpg",             title: "Bé mèo Samson dễ thương" },
+  { src: "./images/tet.jpg",                title: "Tết ấm áp bên em bé" },
+  { src: "./images/totnghiep.jpg",          title: "Tự hào ngày em tốt nghiệp" },
+];
+
+function initThatDayGallery() {
   const grid = document.getElementById("tdGalleryGrid");
-  GALLERY_IMGS.forEach(({ src, alt }) => {
-    const div = document.createElement("div");
-    div.className = "td-gallery-item";
-    const img = document.createElement("img");
-    img.src = src; img.alt = alt; img.loading = "lazy";
-    img.onerror = () => { div.style.display = "none"; };
-    img.addEventListener("click", () => openModal(src, alt));
-    div.appendChild(img);
-    grid.appendChild(div);
-  });
-}
+  if (!grid || grid.children.length > 0) return;
 
-// ══════════════════════════════════════════════════════
-// THATDAY: QUIZ
-// ══════════════════════════════════════════════════════
-let quizScore = 0;
-let quizCurrent = 0;
-
-function buildTdQuiz() {
-  quizScore = 0; quizCurrent = 0;
-  const container = document.getElementById("tdQuizContainer");
-  container.innerHTML = "";
-  document.getElementById("tdQuizResult").style.display = "none";
-  document.getElementById("tdQuizContainer").style.display = "block";
-
-  CONFIG.quiz.forEach((q, idx) => {
+  GALLERY_ITEMS.forEach((item) => {
     const card = document.createElement("div");
-    card.className = "td-quiz-card" + (idx === 0 ? " active" : "");
-    card.id = `tdq-${idx}`;
-    const pct = (idx / CONFIG.quiz.length) * 100;
+    card.className = "td-gallery-item td-reveal";
+
+    const img = document.createElement("img");
+    img.src = item.src;
+    img.alt = item.title;
+    img.loading = "lazy";
+    img.onerror = () => { card.style.display = "none"; };
+
+    card.appendChild(img);
+    card.addEventListener("click", () => {
+      openThatDayModal(item.src, item.title);
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 13. THATDAY: QUIZ SECTION
+// ══════════════════════════════════════════════════
+let quizIndex = 0;
+let quizScore = 0;
+
+function initThatDayQuiz() {
+  quizIndex = 0;
+  quizScore = 0;
+  const box = document.getElementById("tdQuizBox");
+  const resultBox = document.getElementById("tdQuizResult");
+  box.innerHTML = "";
+  box.style.display = "block";
+  resultBox.style.display = "none";
+
+  CONFIG.quiz.forEach((q, i) => {
+    const card = document.createElement("div");
+    card.className = "td-quiz-card" + (i === 0 ? " active" : "");
+    card.id = `tdQuizCard-${i}`;
+
+    const progressPct = ((i + 1) / CONFIG.quiz.length) * 100;
+
+    const optionsHtml = q.options
+      .map((opt, optIdx) => `<button type="button" class="td-quiz-opt" data-q="${i}" data-opt="${optIdx}">${opt}</button>`)
+      .join("");
+
     card.innerHTML = `
-      <div class="td-quiz-progress">Câu ${idx+1} / ${CONFIG.quiz.length}</div>
-      <div class="td-quiz-bar"><div class="td-quiz-bar-fill" style="width:${pct}%"></div></div>
-      <div class="td-quiz-q">${q.question}</div>
-      <div class="td-quiz-opts">
-        ${q.options.map((opt, i) => `<button class="td-quiz-opt" data-q="${idx}" data-i="${i}">${opt}</button>`).join("")}
+      <div class="td-quiz-progress">CÂU HỎI ${i + 1} / ${CONFIG.quiz.length}</div>
+      <div class="td-quiz-bar">
+        <div class="td-quiz-bar-fill" style="width: ${progressPct}%"></div>
       </div>
-      <div class="td-quiz-exp" id="tdqe-${idx}">${q.explanation}</div>
-      <button class="td-quiz-next" id="tdqn-${idx}">
-        ${idx < CONFIG.quiz.length - 1 ? "Câu tiếp theo →" : "Xem kết quả 🎉"}
-      </button>`;
-    container.appendChild(card);
+      <h3 class="td-quiz-q">${q.question}</h3>
+      <div class="td-quiz-options">
+        ${optionsHtml}
+      </div>
+      <div class="td-quiz-exp" id="tdQuizExp-${i}">${q.explanation}</div>
+      <button type="button" class="td-quiz-next" id="tdQuizNext-${i}">
+        ${i < CONFIG.quiz.length - 1 ? "Câu tiếp theo →" : "Xem kết quả 🎉"}
+      </button>
+    `;
+    box.appendChild(card);
   });
 
-  container.querySelectorAll(".td-quiz-opt").forEach(btn => btn.addEventListener("click", handleQuizAnswer));
-  container.querySelectorAll(".td-quiz-next").forEach(btn => btn.addEventListener("click", handleQuizNext));
+  // Attach event handlers
+  box.querySelectorAll(".td-quiz-opt").forEach((btn) => {
+    btn.addEventListener("click", handleQuizOptionClick);
+  });
+  box.querySelectorAll(".td-quiz-next").forEach((btn) => {
+    btn.addEventListener("click", handleQuizNextClick);
+  });
 }
 
-function handleQuizAnswer(e) {
-  const btn  = e.currentTarget;
-  const qIdx = +btn.dataset.q;
-  const iIdx = +btn.dataset.i;
-  const correct = CONFIG.quiz[qIdx].correct;
+function handleQuizOptionClick(e) {
+  const btn = e.currentTarget;
+  const qIdx = parseInt(btn.dataset.q);
+  const optIdx = parseInt(btn.dataset.opt);
+  const qData = CONFIG.quiz[qIdx];
 
-  document.querySelectorAll(`.td-quiz-opt[data-q="${qIdx}"]`).forEach(b => {
+  const parent = document.getElementById(`tdQuizCard-${qIdx}`);
+  const allBtns = parent.querySelectorAll(".td-quiz-opt");
+  allBtns.forEach((b) => {
     b.disabled = true;
-    if (+b.dataset.i === correct) b.classList.add("correct");
+    if (parseInt(b.dataset.opt) === qData.correct) {
+      b.classList.add("correct");
+    }
   });
-  if (iIdx === correct) { quizScore++; btn.classList.add("correct"); }
-  else btn.classList.add("wrong");
 
-  const exp  = document.getElementById(`tdqe-${qIdx}`);
-  const next = document.getElementById(`tdqn-${qIdx}`);
-  if (exp)  exp.style.display  = "block";
-  if (next) next.style.display = "block";
+  if (optIdx === qData.correct) {
+    btn.classList.add("correct");
+    quizScore++;
+  } else {
+    btn.classList.add("wrong");
+  }
+
+  const exp = document.getElementById(`tdQuizExp-${qIdx}`);
+  if (exp) exp.style.display = "block";
+
+  const nextBtn = document.getElementById(`tdQuizNext-${qIdx}`);
+  if (nextBtn) nextBtn.style.display = "block";
 }
 
-function handleQuizNext(e) {
-  const idx = +e.currentTarget.id.split("-").pop();
-  document.getElementById(`tdq-${idx}`).classList.remove("active");
-  quizCurrent = idx + 1;
-  if (quizCurrent < CONFIG.quiz.length) {
-    document.getElementById(`tdq-${quizCurrent}`).classList.add("active");
+function handleQuizNextClick(e) {
+  const btn = e.currentTarget;
+  const qIdx = parseInt(btn.id.split("-").pop());
+  const currentCard = document.getElementById(`tdQuizCard-${qIdx}`);
+  currentCard.classList.remove("active");
+
+  quizIndex = qIdx + 1;
+  if (quizIndex < CONFIG.quiz.length) {
+    const nextCard = document.getElementById(`tdQuizCard-${quizIndex}`);
+    nextCard.classList.add("active");
   } else {
-    document.getElementById("tdQuizContainer").style.display = "none";
+    // Show results
     showQuizResult();
   }
 }
 
 function showQuizResult() {
-  const res   = document.getElementById("tdQuizResult");
+  const box = document.getElementById("tdQuizBox");
+  const res = document.getElementById("tdQuizResult");
+  box.style.display = "none";
+
   const total = CONFIG.quiz.length;
-  const pct   = Math.round((quizScore / total) * 100);
-  let emoji, title, msg;
-  if (pct === 100) {
-    emoji = "🏆"; title = "Hoàn hảo tuyệt đối!";
-    msg = `Em trả lời đúng hết ${total}/${total} câu! Em bé iu hiểu anh quá rồi nè 🥺💕`;
-  } else if (pct >= 60) {
-    emoji = "💕"; title = "Em bé giỏi lắm!";
-    msg = `Em trả lời đúng ${quizScore}/${total} câu. Chúng mình hiểu nhau nhiều lắm rồi! 🌸`;
-  } else {
-    emoji = "😄"; title = "Thử lại nhé em bé!";
-    msg = `Em trả lời đúng ${quizScore}/${total} câu. Chúng mình sẽ còn tạo thêm nhiều kỷ niệm! 💖`;
+  let emoji = "💕";
+  let title = "Em bé giỏi lắm!";
+  let msg = `Em trả lời đúng ${quizScore}/${total} câu. Chúng mình thật sự hiểu nhau rất nhiều! 🥰`;
+
+  if (quizScore === total) {
+    emoji = "🏆 💖";
+    title = "Tuyệt đối 100%!";
+    msg = `Không sai câu nào cả (${quizScore}/${total})! Em bé iu nhớ rõ từng kỷ niệm của hai đứa, anh thương em lắm! 🥺`;
+  } else if (quizScore < 3) {
+    emoji = "✨ 🌸";
+    title = "Không sao hết nè!";
+    msg = `Đúng ${quizScore}/${total} câu. Mỗi ngày bên nhau chúng mình sẽ cùng viết thêm thật nhiều kỷ niệm mới nha!`;
   }
+
   res.innerHTML = `
-    <div class="td-quiz-result-inner">
-      <div class="r-emoji">${emoji}</div>
-      <h3>${title}</h3>
-      <p>${msg}</p>
-      <button class="td-quiz-restart" id="tdQuizRestart">Làm lại 🔄</button>
-    </div>`;
+    <div class="td-result-emoji">${emoji}</div>
+    <h3 class="td-result-title">${title}</h3>
+    <p class="td-result-msg">${msg}</p>
+    <button type="button" class="td-result-btn" id="tdQuizRestartBtn">Thử lại lần nữa 🔄</button>
+  `;
   res.style.display = "block";
-  document.getElementById("tdQuizRestart").addEventListener("click", buildTdQuiz);
 
-  if (pct >= 80) {
-    for (let i = 0; i < 8; i++) {
-      setTimeout(() => createFirework(
-        Math.random() * window.innerWidth,
-        Math.random() * window.innerHeight * 0.5
-      ), i * 300);
+  document.getElementById("tdQuizRestartBtn").addEventListener("click", () => {
+    initThatDayQuiz();
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 14. THATDAY: IMAGE LIGHTBOX MODAL
+// ══════════════════════════════════════════════════
+const tdModal         = document.getElementById("tdModal");
+const tdModalBackdrop = document.getElementById("tdModalBackdrop");
+const tdModalImg      = document.getElementById("tdModalImg");
+const tdModalCaption  = document.getElementById("tdModalCaption");
+
+function initThatDayModal() {
+  tdModalBackdrop.addEventListener("click", closeThatDayModal);
+  tdModal.addEventListener("click", (e) => {
+    if (e.target === tdModal || e.target === tdModalBackdrop) {
+      closeThatDayModal();
     }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && tdModal.style.display !== "none") {
+      closeThatDayModal();
+    }
+  });
+}
+
+function openThatDayModal(src, title) {
+  tdModalImg.src = src;
+  tdModalCaption.textContent = title || "";
+  tdModal.style.display = "flex";
+}
+
+function closeThatDayModal() {
+  tdModal.style.display = "none";
+}
+
+// ══════════════════════════════════════════════════
+// 15. THATDAY: SCROLL TRIGGERS & PARALLAX
+// ══════════════════════════════════════════════════
+function initThatDayScrollTriggers() {
+  const heroContent = document.getElementById("tdHeroContent");
+
+  // Hero Parallax on Scroll (Framer Motion equivalent)
+  window.addEventListener(
+    "scroll",
+    () => {
+      const scrollY = window.scrollY || window.pageYOffset;
+      const windowHeight = window.innerHeight;
+
+      if (scrollY <= windowHeight) {
+        const progress = Math.min(1, Math.max(0, scrollY / (windowHeight * 0.8)));
+        const opacity = 1 - progress;
+        const scale   = 1 - progress * 0.05;
+        const transY  = progress * 130;
+
+        heroContent.style.opacity   = opacity;
+        heroContent.style.transform = `translateY(${transY}px) scale(${scale})`;
+      }
+    },
+    { passive: true }
+  );
+
+  // IntersectionObserver for FoldCards & Section Reveals
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+
+          // Kích hoạt animated underline nếu có
+          const underlines = entry.target.querySelectorAll(".td-underline");
+          underlines.forEach((u) => u.classList.add("visible"));
+        }
+      });
+    },
+    {
+      threshold: 0.15,
+      rootMargin: "0px 0px -40px 0px",
+    }
+  );
+
+  document.querySelectorAll(".td-fold-card, .td-reveal").forEach((el) => {
+    observer.observe(el);
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 16. REPLAY ALL (Reset về Phase 1)
+// ══════════════════════════════════════════════════
+function replayAll() {
+  candlesBlown = false;
+  candles.forEach((c) => c.classList.remove("out"));
+  blowInstruction.style.display = "block";
+  blownMessage.classList.remove("show");
+  candles = [];
+  document.querySelectorAll(".candle").forEach((c) => c.remove());
+
+  // Reset Phase classes
+  document.documentElement.classList.remove("phase-thatday");
+  document.body.classList.remove("phase-thatday");
+  document.body.classList.add("phase-hbd");
+
+  // Reset overlays & containers
+  thatDayApp.style.display = "none";
+  receiptOverlay.style.display = "none";
+  tlContainer.style.display = "block";
+  tlContainer.classList.add("active");
+
+  // Reset audio về hbd.mpeg
+  if (thatDayMusic) thatDayMusic.pause();
+  currentAudio = bgMusic;
+  bgMusic.currentTime = 0;
+  bgMusic.volume = 1;
+  bgMusic.play().catch(() => {});
+  isMusicPlaying = true;
+  musicIcon.textContent = "🔊";
+
+  // Restart GSAP timeline
+  if (tl) {
+    tl.restart();
   }
 }
 
-// ══════════════════════════════════════════════════════
-// IMAGE MODAL
-// ══════════════════════════════════════════════════════
-function openModal(src, alt) {
-  imgModalImg.src = src;
-  imgModalImg.alt = alt;
-  imgModal.style.display = "flex";
-  document.body.style.overflow = "hidden";
-}
-function closeModal() {
-  imgModal.style.display = "none";
-  document.body.style.overflow = "";
-}
-imgModalBg.addEventListener("click", closeModal);
-imgModalClose.addEventListener("click", closeModal);
-
-// ══════════════════════════════════════════════════════
-// INTERSECTION OBSERVER (fold / reveal)
-// ══════════════════════════════════════════════════════
-function initScrollObserver() {
-  // Timeline vertical line animation
-  const line = document.querySelector(".td-timeline-list::before");
-
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("visible");
-      }
-    });
-  }, { threshold: 0.12 });
-
-  const targets = document.querySelectorAll(
-    ".td-tl-card, .td-gallery-item, .fold-item, .td-underline-anim, .td-underline-anim-red"
-  );
-  targets.forEach(el => obs.observe(el));
-}
-
-// ══════════════════════════════════════════════════════
-// AMBIENT EFFECTS (happybirthday style)
-// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// 17. AMBIENT EFFECTS (Balloons, Confetti, Fireworks)
+// ══════════════════════════════════════════════════
 function startBalloons() {
-  const EMOJIS = ["🎈","🎀","💕","🌸"];
+  const emojis = ["🎈", "🎀", "💕", "🌸"];
   setInterval(() => {
     const b = document.createElement("div");
     b.className = "balloon";
-    b.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    b.textContent = emojis[Math.floor(Math.random() * emojis.length)];
     b.style.left = Math.random() * 100 + "%";
-    b.style.animationDuration = (12 + Math.random() * 8) + "s";
-    b.style.animationDelay   = Math.random() * 3 + "s";
+    b.style.animationDuration = 12 + Math.random() * 8 + "s";
+    b.style.animationDelay    = Math.random() * 2 + "s";
     document.body.appendChild(b);
     setTimeout(() => b.remove(), 16000);
   }, 1400);
 }
 
 function startConfetti() {
-  const COLS = ["#FF4DA6","#FFD54F","#00E5FF","#a855f7","#48c774","#FFAAEA","#EAC435"];
+  const colors = ["#FF4DA6", "#FFD54F", "#00E5FF", "#a855f7", "#48c774", "#FFAAEA", "#EAC435"];
   setInterval(() => {
     const c = document.createElement("div");
     c.className = "confetti";
     c.style.left = Math.random() * 100 + "%";
-    c.style.backgroundColor = COLS[Math.floor(Math.random() * COLS.length)];
-    c.style.animationDuration = (3 + Math.random() * 2) + "s";
-    c.style.animationDelay   = Math.random() + "s";
+    c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDuration = 3 + Math.random() * 2 + "s";
+    c.style.animationDelay    = Math.random() + "s";
     c.style.borderRadius     = Math.random() > 0.5 ? "50%" : "2px";
     document.body.appendChild(c);
     setTimeout(() => c.remove(), 6000);
-  }, 150);
+  }, 160);
 }
 
 function createFirework(x, y) {
-  const COLS = ["#FF4DA6","#FFD54F","#00E5FF","#a855f7","#FFAAEA","#EAC435"];
-  for (let i = 0; i < 40; i++) {
+  const colors = ["#FF4DA6", "#FFD54F", "#00E5FF", "#a855f7", "#FFAAEA", "#EAC435", "#FB4D3D"];
+  for (let i = 0; i < 36; i++) {
     const f = document.createElement("div");
     f.className = "firework";
-    f.style.left = x + "px"; f.style.top = y + "px";
-    f.style.backgroundColor = COLS[Math.floor(Math.random() * COLS.length)];
-    const angle = (Math.PI * 2 * i) / 40;
-    const vel   = 2 + Math.random() * 3;
+    f.style.left = x + "px";
+    f.style.top  = y + "px";
+    f.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+    const angle = (Math.PI * 2 * i) / 36;
+    const vel   = 2 + Math.random() * 3.5;
     document.body.appendChild(f);
-    let px = x, py = y, vx = Math.cos(angle) * vel, vy = Math.sin(angle) * vel;
+
+    let px = x;
+    let py = y;
+    let vx = Math.cos(angle) * vel;
+    let vy = Math.sin(angle) * vel;
+
     const anim = setInterval(() => {
-      vy += 0.15; px += vx; py += vy;
-      f.style.left = px + "px"; f.style.top = py + "px";
-      if (py > window.innerHeight) { clearInterval(anim); f.remove(); }
+      vy += 0.14;
+      px += vx;
+      py += vy;
+      f.style.left = px + "px";
+      f.style.top  = py + "px";
+
+      if (py > window.innerHeight) {
+        clearInterval(anim);
+        f.remove();
+      }
     }, 16);
   }
 }
@@ -708,5 +1008,5 @@ function createFirework(x, y) {
 function startFireworks() {
   setInterval(() => {
     createFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight / 2));
-  }, 2500);
+  }, 2600);
 }
