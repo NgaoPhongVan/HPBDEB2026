@@ -290,9 +290,13 @@ function blowCandles() {
 // ══════════════════════════════════════════════════════
 function showReceipt() {
   sectionReceipt.style.display = "flex";
+  // Allow body to scroll so user can reach the "Tiếp theo" button on small screens
+  document.body.style.overflowY = "auto";
   // Animate items in
   const items = sectionReceipt.querySelectorAll(".receipt-item");
   items.forEach((el, i) => setTimeout(() => el.classList.add("visible"), 200 + i * 130));
+  // Scroll to top so receipt is visible
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 receiptNextBtn.addEventListener("click", () => {
@@ -363,7 +367,7 @@ function replayAll() {
   scrollWorld.style.display = "none";
   tlContainer.style.display = "block";
   tlContainer.style.opacity = "1";
-  document.body.style.overflow = "hidden";
+  document.body.style.overflowY = "hidden"; // back to GSAP mode
 
   bgMusic.currentTime = 0;
   bgMusic.play()
