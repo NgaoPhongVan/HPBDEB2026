@@ -16,6 +16,15 @@ const state = {
 /* Audio */
 let audio;
 
+/* Candle & Mic blow state */
+let micStream = null;
+let micAudioContext = null;
+let micAnalyser = null;
+let micAnimFrame = null;
+let micListening = false;
+let blowCounter = 0;
+let cakeClickable = false;
+
 /* =============================================
    DOM READY
    ============================================= */
@@ -71,7 +80,12 @@ function checkPassword() {
 
   if (input === CONFIG.password || input.toLowerCase() === CONFIG.nicknames[0]) {
     errEl.textContent = '';
+    cakeClickable = false;
     transitionToScreen('screen-intro', 'screen-cake');
+    setTimeout(() => {
+      cakeClickable = true;
+      initMicBlow();
+    }, 800);
     setTimeout(() => {
       audio.play().catch(() => {});
       state.musicPlaying = true;
@@ -117,15 +131,24 @@ function transitionToScreen(fromId, toId) {
    CANDLE BLOW / BIRTHDAY CAKE
    ============================================= */
 function blowCandles() {
+  if (!cakeClickable && !state.candlesBlown) return;
   if (state.candlesBlown) return;
   state.candlesBlown = true;
+  stopMicBlow();
 
   const svgEl = document.getElementById('cake-svg');
-  svgEl.classList.add('flames-out');
+  if (svgEl) svgEl.classList.add('flames-out');
+
+  const meter = document.getElementById('blow-meter-container');
+  if (meter) meter.style.display = 'none';
+  const micBtnWrapper = document.getElementById('mic-btn-wrapper');
+  if (micBtnWrapper) micBtnWrapper.style.display = 'none';
 
   const instruction = document.getElementById('blow-instruction');
-  instruction.innerHTML = '🎉 Chúc mừng sinh nhật em bé iu! 🎂';
-  instruction.style.color = '#ec4899';
+  if (instruction) {
+    instruction.innerHTML = '🎉 Chúc mừng sinh nhật em bé iu! 🎂';
+    instruction.style.color = '#ec4899';
+  }
 
   // Fireworks
   startFireworks();
@@ -136,6 +159,120 @@ function blowCandles() {
     transitionToScreen('screen-cake', 'screen-receipt');
     setTimeout(() => runConfetti(5000), 300);
   }, 3000);
+}
+
+/* =============================================
+   MICROPHONE BLOW DETECTION
+   ============================================= */
+function requestMicPermission() {
+  initMicBlow(true);
+}
+
+function initMicBlow(userTriggered = false) {
+  if (state.candlesBlown) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    updateBlowInstruction('tap-only');
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    .then(stream => {
+      if (state.candlesBlown) {
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
+      micStream = stream;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      micAudioContext = new AudioCtx();
+      const source = micAudioContext.createMediaStreamSource(stream);
+      micAnalyser = micAudioContext.createAnalyser();
+      micAnalyser.fftSize = 512;
+      micAnalyser.smoothingTimeConstant = 0.2;
+      source.connect(micAnalyser);
+
+      micListening = true;
+      updateBlowInstruction('mic-active');
+      detectBlow();
+    })
+    .catch(err => {
+      console.log('Mic unavailable or permission denied:', err);
+      updateBlowInstruction('tap-only');
+    });
+}
+
+function detectBlow() {
+  if (!micListening || state.candlesBlown) return;
+
+  const bufferLength = micAnalyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  micAnalyser.getByteFrequencyData(dataArray);
+
+  // Low frequency energy (turbulent wind / blow into mic: bins 1 to 15, approx 40Hz - 300Hz)
+  let lowFreqSum = 0;
+  const lowBins = Math.min(15, bufferLength);
+  for (let i = 1; i < lowBins; i++) {
+    lowFreqSum += dataArray[i];
+  }
+  const lowFreqAvg = lowFreqSum / (lowBins - 1);
+
+  // Overall average across full spectrum
+  let totalSum = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    totalSum += dataArray[i];
+  }
+  const overallAvg = totalSum / bufferLength;
+
+  // Visual meter update
+  const meterBar = document.getElementById('blow-meter-bar');
+  if (meterBar) {
+    const meterPercent = Math.min(100, Math.max(0, Math.round(((lowFreqAvg - 25) / 65) * 100)));
+    meterBar.style.width = meterPercent + '%';
+  }
+
+  // Blow threshold:
+  // Background music & room ambient sound rarely exceed lowFreqAvg > 75 with overallAvg > 30.
+  // Sustaining for 3 consecutive frames confirms intentional blow air stream.
+  if (cakeClickable && lowFreqAvg > 75 && overallAvg > 30) {
+    blowCounter++;
+    if (blowCounter >= 3) {
+      blowCandles();
+      return;
+    }
+  } else {
+    blowCounter = Math.max(0, blowCounter - 1);
+  }
+
+  micAnimFrame = requestAnimationFrame(detectBlow);
+}
+
+function stopMicBlow() {
+  micListening = false;
+  if (micAnimFrame) cancelAnimationFrame(micAnimFrame);
+  if (micStream) {
+    micStream.getTracks().forEach(track => track.stop());
+    micStream = null;
+  }
+  if (micAudioContext && micAudioContext.state !== 'closed') {
+    micAudioContext.close().catch(() => {});
+    micAudioContext = null;
+  }
+}
+
+function updateBlowInstruction(mode) {
+  const instr = document.getElementById('blow-instruction');
+  const meter = document.getElementById('blow-meter-container');
+  const micBtnWrapper = document.getElementById('mic-btn-wrapper');
+  if (!instr) return;
+
+  if (mode === 'mic-active') {
+    instr.innerHTML = '🌬️ <strong>Thổi vào micro</strong> hoặc 👆 <strong>chạm bánh</strong> để thổi nến nhé!';
+    if (meter) meter.style.display = 'block';
+    if (micBtnWrapper) micBtnWrapper.style.display = 'none';
+  } else {
+    instr.innerHTML = '👆 <strong>Chạm / Click vào bánh</strong> để thổi nến nhé! 🕯️';
+    if (meter) meter.style.display = 'none';
+    if (micBtnWrapper) micBtnWrapper.style.display = 'block';
+  }
 }
 
 /* =============================================

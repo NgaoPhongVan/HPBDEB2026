@@ -130,20 +130,26 @@
         <!-- Candles -->
         <!-- Candle 1 -->
         <rect x="108" y="42" width="10" height="34" rx="3" fill="#fbbf24"/>
-        <ellipse class="candle-flame" cx="113" cy="40" rx="6" ry="9" fill="#f97316" opacity=".9"/>
-        <ellipse class="candle-flame" cx="113" cy="43" rx="3" ry="5" fill="#fef9c3"/>
+        <g class="candle-flame-group flame-1">
+          <ellipse class="candle-flame" cx="113" cy="40" rx="6" ry="9" fill="#f97316" opacity=".9"/>
+          <ellipse class="candle-flame-inner" cx="113" cy="43" rx="3" ry="5" fill="#fef9c3"/>
+        </g>
         <path class="candle-smoke" d="M113,30 Q118,20 113,10" fill="none" stroke="#aaa" stroke-width="2" opacity=".7"/>
 
         <!-- Candle 2 -->
         <rect x="143" y="35" width="10" height="41" rx="3" fill="#ec4899"/>
-        <ellipse class="candle-flame" cx="148" cy="33" rx="6" ry="9" fill="#f97316" opacity=".9"/>
-        <ellipse class="candle-flame" cx="148" cy="36" rx="3" ry="5" fill="#fef9c3"/>
+        <g class="candle-flame-group flame-2">
+          <ellipse class="candle-flame" cx="148" cy="33" rx="6" ry="9" fill="#f97316" opacity=".9"/>
+          <ellipse class="candle-flame-inner" cx="148" cy="36" rx="3" ry="5" fill="#fef9c3"/>
+        </g>
         <path class="candle-smoke" d="M148,23 Q153,13 148,3" fill="none" stroke="#aaa" stroke-width="2" opacity=".7"/>
 
         <!-- Candle 3 -->
         <rect x="178" y="42" width="10" height="34" rx="3" fill="#a855f7"/>
-        <ellipse class="candle-flame" cx="183" cy="40" rx="6" ry="9" fill="#f97316" opacity=".9"/>
-        <ellipse class="candle-flame" cx="183" cy="43" rx="3" ry="5" fill="#fef9c3"/>
+        <g class="candle-flame-group flame-3">
+          <ellipse class="candle-flame" cx="183" cy="40" rx="6" ry="9" fill="#f97316" opacity=".9"/>
+          <ellipse class="candle-flame-inner" cx="183" cy="43" rx="3" ry="5" fill="#fef9c3"/>
+        </g>
         <path class="candle-smoke" d="M183,30 Q188,20 183,10" fill="none" stroke="#aaa" stroke-width="2" opacity=".7"/>
 
         <!-- Sprinkles -->
@@ -160,7 +166,25 @@
       👆 Chạm / Click vào bánh để thổi nến nhé! 🕯️
     </p>
 
-    <p style="margin-top:1.5rem;color:#c084fc;font-size:.9rem;">
+    <!-- Breath / Mic meter (active when mic is listening) -->
+    <div id="blow-meter-container" class="blow-meter-container" style="display:none;">
+      <div class="blow-meter-label">
+        <i class="fas fa-microphone" style="color:var(--pink-500);"></i>
+        <span>Đang nghe tiếng thổi:</span>
+      </div>
+      <div class="blow-meter-track">
+        <div id="blow-meter-bar" class="blow-meter-bar"></div>
+      </div>
+    </div>
+
+    <!-- Optional mic button if browser blocked autoplay mic or user wants to toggle -->
+    <div id="mic-btn-wrapper" style="margin-top:0.8rem;">
+      <button id="enable-mic-btn" class="mic-request-btn" onclick="requestMicPermission()">
+        <i class="fas fa-microphone"></i> Bật micro để thổi nến
+      </button>
+    </div>
+
+    <p style="margin-top:1.2rem;color:#c084fc;font-size:.9rem;">
       (Sau khi thổi nến sẽ có bí mật đặc biệt 🎁)
     </p>
   </div>
