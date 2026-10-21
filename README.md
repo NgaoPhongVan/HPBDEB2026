@@ -28,7 +28,7 @@ Trang web sinh nhật cảm xúc và interactive dành tặng **Hạnh** – em 
 
 ### Thổi nến bằng micro
 
-- Bấm **Bật micro để thổi nến**, cấp quyền rồi giữ yên khoảng 2 giây để đo tiếng nền.
+- Bấm **Bật micro để thổi nến**, cấp quyền rồi giữ yên khoảng 2 giây để đo tiếng nền. Bộ nhận diện cần thêm một khoảng yên lặng liên tục trước khi sẵn sàng, tránh nhận nhầm âm thanh đang có lúc vừa đo xong.
 - Khi hiện hướng dẫn thổi, thổi gần micro liên tục khoảng nửa giây. Nhạc nền tạm im khi micro bật và tự khôi phục khi tắt micro hoặc thổi xong.
 - Có thể bấm **Tắt micro** để thử lại bước đo tiếng nền. Chạm bánh vẫn hoạt động khi không dùng được micro.
 - Micro cần HTTPS (ví dụ GitHub Pages) hoặc localhost.

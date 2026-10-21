@@ -37,11 +37,11 @@ test('silence, room noise, music, speech, hum and a clap do not extinguish candl
   ];
   for (const signal of signals) {
     const detector = gate();
-    detector.feed(room, 2000);
+    detector.feed(room, 2200);
     assert.equal(detector.feed(signal, 10000).detected, false);
   }
   const detector = gate();
-  detector.feed(room, 2000);
+  detector.feed(room, 2200);
   assert.equal(detector.feed(breath, 80).detected, false); // even a loud low-frequency impulse
   assert.equal(detector.feed(room, 1000).progress, 0);
 });
@@ -54,14 +54,14 @@ test('steady loud background is calibrated instead of treated as a breath', () =
 test('breath during calibration cannot trigger; a later sustained breath can', () => {
   const detector = gate();
   assert.equal(detector.feed(breath, 200).calibrating, true);
-  detector.feed(room, 2000);
+  detector.feed(room, 2200);
   assert.equal(detector.feed(breath, 400).detected, false);
   assert.equal(detector.feed(breath, 100).detected, true);
 });
 
 test('separate short bursts never accumulate into a sustained breath', () => {
   const detector = gate();
-  detector.feed(room, 2000);
+  detector.feed(room, 2200);
   for (let i = 0; i < 20; i++) {
     assert.equal(detector.feed(breath, 300).detected, false);
     assert.equal(detector.feed(room, 20).progress, 0);
@@ -71,18 +71,49 @@ test('separate short bursts never accumulate into a sustained breath', () => {
 test('confirmation uses elapsed time at 30, 60 and 144 fps; delayed frames reset it', () => {
   for (const step of [1000 / 30, 1000 / 60, 1000 / 144]) {
     const detector = gate();
-    detector.feed(room, 2000, step);
+    detector.feed(room, 2200, step);
     assert.equal(detector.feed(breath, 350, step).detected, false);
     assert.equal(detector.feed(breath, 200, step).detected, true);
   }
   const detector = gate();
-  detector.feed(room, 2000);
+  detector.feed(room, 2200);
   detector.feed(breath, 300);
   assert.equal(detector.feed(breath, 500, 500).progress, 0);
   assert.equal(detector.feed(breath, 200).detected, false);
 });
 
-function app({ permission, sampleRate = 48000, resumeError = false } = {}) {
+test('a sound starting at the calibration boundary cannot immediately arm the detector', () => {
+  const detector = gate();
+  detector.feed(room, 1800);
+  const ongoingNoise = detector.feed(breath, 4000);
+  assert.equal(ongoingNoise.detected, false);
+  assert.equal(ongoingNoise.calibrating, true);
+  detector.feed(room, 300);
+  assert.equal(detector.feed(breath, 600).detected, true);
+});
+
+test('brief quiet gaps after calibration cannot accumulate to arm an ongoing sound', () => {
+  const detector = gate();
+  detector.feed(room, 1800);
+  for (let i = 0; i < 10; i++) {
+    assert.equal(detector.feed(room, 80).detected, false);
+    const result = detector.feed(breath, 600);
+    assert.equal(result.detected, false);
+    assert.equal(result.calibrating, true);
+  }
+});
+
+test('the quiet interval before a breath is not counted as blowing time', () => {
+  const context = vm.createContext({});
+  vm.runInContext(detectorCode, context);
+  const detector = vm.runInContext('createBlowDetector()', context);
+  for (let now = 0; now <= 2200; now += 20) detector.update({ now, ...room });
+  const onset = detector.update({ now: 2300, ...breath });
+  assert.equal(onset.progress, 0);
+  assert.equal(onset.detected, false);
+});
+
+function app({ permission, sampleRate = 48000, resumeError = false, dcOffset = 0 } = {}) {
   let now = 0;
   let requests = 0;
   let amplitude = 0.004;
@@ -120,7 +151,7 @@ function app({ permission, sampleRate = 48000, resumeError = false } = {}) {
       createAnalyser() {
         return {
           fftSize: 2048, frequencyBinCount: 1024,
-          getFloatTimeDomainData(data) { data.forEach((_, i) => { data[i] = i % 2 ? amplitude : -amplitude; }); },
+          getFloatTimeDomainData(data) { data.forEach((_, i) => { data[i] = dcOffset + (i % 2 ? amplitude : -amplitude); }); },
           getFloatFrequencyData(data) {
             data.fill(-100);
             for (let i = 1; i < data.length; i++) {
@@ -165,7 +196,7 @@ test('entering the cake screen never requests microphone permission automaticall
   assert.equal(page.run('state.candlesBlown'), false);
 });
 
-for (const sampleRate of [44100, 48000]) {
+for (const sampleRate of [44100, 48000, 96000]) {
   test(`microphone flow at ${sampleRate} Hz: ambient stays lit, sustained breath extinguishes and cleans up`, async () => {
     const page = app({ sampleRate });
     await page.run('initMicBlow()');
@@ -237,4 +268,27 @@ test('hiding the page stops listening; restarting recalibrates and preserves pre
   assert.equal(page.run('state.candlesBlown'), false);
   page.run('stopMicBlow()');
   assert.equal(page.contexts.every(context => context.state === 'closed'), true);
+});
+
+test('a DC offset in microphone samples does not raise the measured room volume', async () => {
+  const page = app({ dcOffset: 0.4 });
+  await page.run('initMicBlow()');
+  page.advance(6000);
+  assert.equal(page.run('state.candlesBlown'), false);
+  page.advance(600, true);
+  assert.equal(page.run('state.candlesBlown'), true);
+});
+
+test('audio interruption releases the mic instead of counting stale data as a breath', async () => {
+  const page = app();
+  await page.run('initMicBlow()');
+  page.advance(3000);
+  page.advance(300, true);
+  page.contexts[0].state = 'suspended';
+  page.advance(1000, true);
+  assert.equal(page.run('state.candlesBlown'), false);
+  assert.equal(page.run('micListening || micStarting'), false);
+  assert.equal(page.run('audio.muted'), false);
+  assert.equal(page.frames.size, 0);
+  assert.equal(page.stopped, 1);
 });
