@@ -235,10 +235,10 @@ function initGsapTimeline() {
       createCandles();
       startMicrophoneDetection();
     });
-
-  // Replay
-  document.getElementById("replay").addEventListener("click", replayAll);
 }
+
+// Register once. The invisible replay section must never intercept cake taps.
+document.getElementById("replay").addEventListener("click", replayAll);
 
 // ══════════════════════════════════════════════════════
 // 5. CAKE & CANDLE BLOW (Mic or click)
@@ -286,6 +286,7 @@ function createCandles() {
 }
 
 function stopMicrophoneDetection() {
+  document.getElementById("micLevel").hidden = true;
   micSessionId++;
   micRequestPending = false;
   isListening = false;
@@ -334,7 +335,7 @@ async function requestMicPermission() {
     if (sessionId !== micSessionId) return;
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        echoCancellation: true,
+        echoCancellation: false,
         noiseSuppression: false,
         autoGainControl: false,
       },
@@ -372,6 +373,12 @@ function setupAudioAnalysis(stream, sessionId) {
   const detector = new CandleBlowDetector(audioCtx.sampleRate, analyser.fftSize);
   detector.reset(performance.now());
   isListening = true;
+  blowInstruction.disabled = false;
+  blowInstruction.onclick = () => {
+    stopMicrophoneDetection();
+    return requestMicPermission();
+  };
+  document.getElementById("micLevel").hidden = false;
   blowInstruction.textContent = "🎤 Giữ yên lặng khoảng 2 giây để mic đo tiếng nền...";
 
   stream.getTracks().forEach((track) => {
@@ -392,9 +399,10 @@ function setupAudioAnalysis(stream, sessionId) {
     analyser.getFloatTimeDomainData(waveform);
     analyser.getFloatFrequencyData(spectrum);
     const result = detector.update(now, waveform, spectrum);
+    document.getElementById("micLevelBar").style.width = Math.round((result.level || 0) * 100) + "%";
     const instruction = result.calibrating
       ? "🎤 Giữ yên lặng khoảng 2 giây để mic đo tiếng nền..."
-      : "🌬️ Sẵn sàng! Thổi gần mic khoảng nửa giây (hoặc nhấn vào bánh)!";
+      : "🌬️ Sẵn sàng! Thổi gần mic khoảng nửa giây. Nhấn đây để đo lại.";
     if (blowInstruction.textContent !== instruction) blowInstruction.textContent = instruction;
     if (result.blown) {
       blowCandles();
@@ -416,7 +424,7 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", stopMicrophoneDetection);
 
 function blowCandles() {
-  if (candlesBlown) return;
+  if (candlesBlown || !waitingForCandles) return;
   candlesBlown = true;
   waitingForCandles = false;
   blowInstruction.onclick = null;
@@ -965,7 +973,8 @@ function initThatDayScrollTriggers() {
 // ══════════════════════════════════════════════════
 // 16. REPLAY ALL (Reset về Phase 1)
 // ══════════════════════════════════════════════════
-function replayAll() {
+function replayAll(event) {
+  if (event && (waitingForCandles || !candlesBlown)) return;
   stopMicrophoneDetection();
   waitingForCandles = false;
   blowInstruction.onclick = null;

@@ -665,6 +665,22 @@ body.phase-thatday {
   outline-offset: 6px;
 }
 
+.mic-level {
+  width: min(240px, 80%);
+  height: 8px;
+  margin: 16px auto 0;
+  border-radius: 8px;
+  background: rgba(0, 229, 255, 0.15);
+  overflow: hidden;
+}
+
+.mic-level-bar {
+  width: 0;
+  height: 100%;
+  background: var(--hb-cyan);
+  transition: width 0.08s linear;
+}
+
 .blown-message {
   margin-top: 40px;
   font-size: 2.5rem;
@@ -681,6 +697,8 @@ body.phase-thatday {
 /* Final GSAP section */
 .section-nine {
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 .section-nine p {
   font-size: 2rem;

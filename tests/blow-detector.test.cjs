@@ -3,19 +3,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const CandleBlowDetector = require("../script/blow-detector.js");
-
-// Deterministic signal fixtures: RMS plus spectra in the analyser's dB units.
-function signal(rms, kind = "wind", sampleRate = 48000) {
-  const waveform = Float32Array.from({ length: 2048 }, (_, i) => i % 2 ? rms : -rms);
-  const spectrum = new Float32Array(1024).fill(-Infinity);
-  for (let i = 1; i < spectrum.length; i++) {
-    const hz = i * sampleRate / 2048;
-    if (kind === "wind" && hz >= 40 && hz <= 1000) spectrum[i] = -35;
-    if (kind === "speech" && hz >= 200 && hz <= 5000) spectrum[i] = -35;
-    if (kind === "hum" && hz >= 90 && hz <= 150) spectrum[i] = -20;
-  }
-  return { waveform, spectrum };
-}
+const { signal } = require("./audio-signals.cjs");
 
 function feed(detector, from, to, input, step = 20) {
   let result;
@@ -55,10 +43,46 @@ test("clicks and separated short bursts cannot accumulate into a blow", () => {
   }
 });
 
-test("loud tonal hum and higher-frequency speech/music are rejected", () => {
-  for (const kind of ["hum", "speech"]) {
+test("loud tonal hum and pitched voice are rejected", () => {
+  for (const kind of ["hum", "voice"]) {
     feed(calibrated(), 2420, 10000, signal(0.3, kind));
   }
+});
+
+test("broadband and bass-filtered breaths are detected on phone/headset-like inputs", () => {
+  for (const kind of ["air", "filtered-air"]) {
+    const detector = calibrated();
+    const blow = signal(0.08, kind);
+    feed(detector, 2500, 2820, blow);
+    assert.equal(detector.update(2860, blow.waveform, blow.spectrum).blown, true);
+  }
+});
+
+test("a low-gain mic can detect breath below the old fixed amplitude threshold", () => {
+  const detector = calibrated(0.001);
+  const blow = signal(0.012, "filtered-air");
+  feed(detector, 2500, 2820, blow);
+  assert.equal(detector.update(2860, blow.waveform, blow.spectrum).blown, true);
+});
+
+test("brief dips in a real breath do not continually reset confirmation", () => {
+  const detector = calibrated();
+  const blow = signal(0.08, "filtered-air");
+  const quiet = signal(0.004);
+  let detected = false;
+  for (let now = 2500; now <= 3100; now += 20) {
+    const input = (now - 2500) % 120 === 100 ? quiet : blow;
+    if (detector.update(now, input.waveform, input.spectrum).blown) { detected = true; break; }
+  }
+  assert.equal(detected, true);
+});
+
+test("blowing throughout calibration does not permanently deafen later attempts", () => {
+  const detector = calibrated(0.2);
+  feed(detector, 2420, 3000, signal(0.004));
+  const blow = signal(0.08, "filtered-air");
+  feed(detector, 3020, 3340, blow);
+  assert.equal(detector.update(3380, blow.waveform, blow.spectrum).blown, true);
 });
 
 test("DC offset is not mistaken for microphone volume", () => {

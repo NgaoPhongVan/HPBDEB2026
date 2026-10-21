@@ -125,13 +125,16 @@
         <button type="button" class="blow-instruction" id="blowInstruction" aria-live="polite">
           🎤 Nhấn vào đây để bật mic, rồi thổi nến (hoặc nhấn vào bánh)!
         </button>
+        <div class="mic-level" id="micLevel" hidden aria-hidden="true">
+          <div class="mic-level-bar" id="micLevelBar"></div>
+        </div>
         <p class="blown-message" id="blownMessage">
           🎊 Điều ước đã được gửi lên những vì sao! 🎊<br />
           Chúc mọi điều ước của em đều thành sự thật! ✨
         </p>
       </div>
 
-      <div class="section-nine">
+      <div class="section-nine" inert aria-hidden="true">
         <p style="margin-bottom: 2rem">Sinh nhật em bé iu! 🎂💘</p>
         <br /><br /><br />
         <p>Em có thích không? 💕</p>

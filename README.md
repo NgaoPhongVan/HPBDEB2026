@@ -24,6 +24,8 @@ Trang web sinh nhật dành riêng cho em bé iu năm 2026.
 
 Khi bánh xuất hiện, nhạc tạm dừng. Nhấn nút bật mic, giữ yên lặng khoảng 2 giây
 để đo tiếng nền, đợi dòng “Sẵn sàng!”, rồi thổi gần mic khoảng nửa giây.
+Thanh màu xanh hiển thị mức âm thanh mic nhận được. Có thể nhấn lại dòng hướng
+dẫn để đo lại tiếng nền mà không phải xem lại từ đầu.
 Mic không tự bật lại khi đã cấp quyền trước đó. Có thể nhấn vào bánh để tắt nến
 nếu không dùng mic. Nhạc tiếp tục từ vị trí đã dừng sau khi nến tắt.
 
@@ -31,6 +33,12 @@ Kiểm tra nhận diện và vòng đời mic bằng Node.js (không cần cài 
 
 ```sh
 node --test tests/blow-detector.test.cjs tests/candle-flow.test.cjs
+```
+
+Nếu máy đã có FFmpeg, kiểm tra thêm các đoạn nhạc thật:
+
+```sh
+node --test tests/music-rejection.test.cjs
 ```
 
 ## 🔐 Password
