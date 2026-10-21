@@ -22,7 +22,12 @@ let micAudioContext = null;
 let micAnalyser = null;
 let micAnimFrame = null;
 let micListening = false;
-let blowCounter = 0;
+let micStarting = false;
+let micSessionId = 0;
+let micTimeData = null;
+let micFrequencyData = null;
+let micDetector = null;
+let musicMutedBeforeMic = null;
 let cakeClickable = false;
 
 /* =============================================
@@ -84,7 +89,6 @@ function checkPassword() {
     transitionToScreen('screen-intro', 'screen-cake');
     setTimeout(() => {
       cakeClickable = true;
-      initMicBlow();
     }, 800);
     setTimeout(() => {
       audio.play().catch(() => {});
@@ -165,113 +169,170 @@ function blowCandles() {
    MICROPHONE BLOW DETECTION
    ============================================= */
 function requestMicPermission() {
-  initMicBlow(true);
+  if (micListening || micStarting) {
+    stopMicBlow();
+    updateBlowInstruction('tap-only');
+  } else {
+    initMicBlow();
+  }
 }
 
-function initMicBlow(userTriggered = false) {
-  if (state.candlesBlown) return;
+async function initMicBlow() {
+  if (state.candlesBlown || !cakeClickable || micListening || micStarting) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     updateBlowInstruction('tap-only');
     return;
   }
 
-  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-    .then(stream => {
-      if (state.candlesBlown) {
-        stream.getTracks().forEach(t => t.stop());
-        return;
-      }
-      micStream = stream;
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      micAudioContext = new AudioCtx();
-      const source = micAudioContext.createMediaStreamSource(stream);
-      micAnalyser = micAudioContext.createAnalyser();
-      micAnalyser.fftSize = 512;
-      micAnalyser.smoothingTimeConstant = 0.2;
-      source.connect(micAnalyser);
-
-      micListening = true;
-      updateBlowInstruction('mic-active');
-      detectBlow();
-    })
-    .catch(err => {
-      console.log('Mic unavailable or permission denied:', err);
-      updateBlowInstruction('tap-only');
+  const sessionId = ++micSessionId;
+  micStarting = true;
+  // Silence our own speaker output before calibrating, preserving the music toggle.
+  if (audio) {
+    musicMutedBeforeMic = audio.muted;
+    audio.muted = true;
+  }
+  updateBlowInstruction('mic-starting');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false },
+      video: false,
     });
+    if (sessionId !== micSessionId || state.candlesBlown) {
+      stream.getTracks().forEach(track => track.stop());
+      return;
+    }
+    micStream = stream;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const context = new AudioCtx();
+    micAudioContext = context;
+    if (context.state === 'suspended') await context.resume();
+    if (sessionId !== micSessionId || state.candlesBlown) return;
+    if (context.state !== 'running') throw new Error('Microphone audio context is not running');
+    const source = context.createMediaStreamSource(stream);
+    micAnalyser = context.createAnalyser();
+    micAnalyser.fftSize = 2048;
+    micAnalyser.smoothingTimeConstant = 0;
+    source.connect(micAnalyser);
+    micTimeData = new Float32Array(micAnalyser.fftSize);
+    micFrequencyData = new Float32Array(micAnalyser.frequencyBinCount);
+    micDetector = createBlowDetector();
+    stream.getAudioTracks().forEach(track => track.addEventListener('ended', () => {
+      if (sessionId !== micSessionId) return;
+      stopMicBlow();
+      updateBlowInstruction('tap-only');
+    }));
+    micStarting = false;
+    micListening = true;
+    updateBlowInstruction('mic-calibrating');
+    detectBlow();
+  } catch (err) {
+    if (sessionId !== micSessionId) return;
+    console.log('Mic unavailable or permission denied:', err);
+    stopMicBlow();
+    updateBlowInstruction('tap-only');
+  }
 }
 
 function detectBlow() {
   if (!micListening || state.candlesBlown) return;
 
-  const bufferLength = micAnalyser.frequencyBinCount;
-  const dataArray = new Uint8Array(bufferLength);
-  micAnalyser.getByteFrequencyData(dataArray);
-
-  // Low frequency energy (turbulent wind / blow into mic: bins 1 to 15, approx 40Hz - 300Hz)
-  let lowFreqSum = 0;
-  const lowBins = Math.min(15, bufferLength);
-  for (let i = 1; i < lowBins; i++) {
-    lowFreqSum += dataArray[i];
+  if (micAudioContext.state !== 'running') {
+    stopMicBlow();
+    updateBlowInstruction('tap-only');
+    return;
   }
-  const lowFreqAvg = lowFreqSum / (lowBins - 1);
+  micAnalyser.getFloatTimeDomainData(micTimeData);
+  micAnalyser.getFloatFrequencyData(micFrequencyData);
+  let squareSum = 0;
+  let mean = 0;
+  for (const value of micTimeData) mean += value;
+  mean /= micTimeData.length;
+  for (const value of micTimeData) squareSum += (value - mean) ** 2;
 
-  // Overall average across full spectrum
-  let totalSum = 0;
-  for (let i = 0; i < bufferLength; i++) {
-    totalSum += dataArray[i];
-  }
-  const overallAvg = totalSum / bufferLength;
-
-  // Visual meter update
-  const meterBar = document.getElementById('blow-meter-bar');
-  if (meterBar) {
-    const meterPercent = Math.min(100, Math.max(0, Math.round(((lowFreqAvg - 25) / 65) * 100)));
-    meterBar.style.width = meterPercent + '%';
-  }
-
-  // Blow threshold:
-  // Background music & room ambient sound rarely exceed lowFreqAvg > 75 with overallAvg > 30.
-  // Sustaining for 3 consecutive frames confirms intentional blow air stream.
-  if (cakeClickable && lowFreqAvg > 75 && overallAvg > 30) {
-    blowCounter++;
-    if (blowCounter >= 3) {
-      blowCandles();
-      return;
+  let lowPower = 0;
+  let totalPower = 0;
+  let peakLowPower = 0;
+  const binHz = micAudioContext.sampleRate / micAnalyser.fftSize;
+  for (let i = 1; i < micFrequencyData.length; i++) {
+    const hz = i * binHz;
+    if (hz < 60 || hz > 8000) continue;
+    const power = 10 ** (micFrequencyData[i] / 10);
+    totalPower += power;
+    if (hz <= 600) {
+      lowPower += power;
+      peakLowPower = Math.max(peakLowPower, power);
     }
-  } else {
-    blowCounter = Math.max(0, blowCounter - 1);
+  }
+  const result = micDetector.update({
+    now: performance.now(),
+    rms: Math.sqrt(squareSum / micTimeData.length),
+    lowPower,
+    totalPower,
+    peakLowPower,
+  });
+  updateBlowInstruction(result.calibrating ? 'mic-calibrating' : 'mic-active');
+  const meterBar = document.getElementById('blow-meter-bar');
+  if (meterBar) meterBar.style.width = Math.round(result.progress * 100) + '%';
+  if (cakeClickable && result.detected) {
+    blowCandles();
+    return;
   }
 
   micAnimFrame = requestAnimationFrame(detectBlow);
 }
 
 function stopMicBlow() {
+  ++micSessionId; // Invalidate permission/resume promises from an earlier attempt.
+  micStarting = false;
   micListening = false;
-  if (micAnimFrame) cancelAnimationFrame(micAnimFrame);
+  if (micAnimFrame !== null) cancelAnimationFrame(micAnimFrame);
+  micAnimFrame = null;
   if (micStream) {
     micStream.getTracks().forEach(track => track.stop());
     micStream = null;
   }
-  if (micAudioContext && micAudioContext.state !== 'closed') {
-    micAudioContext.close().catch(() => {});
-    micAudioContext = null;
+  if (micAudioContext && micAudioContext.state !== 'closed') micAudioContext.close().catch(() => {});
+  micAudioContext = null;
+  micAnalyser = null;
+  micTimeData = null;
+  micFrequencyData = null;
+  micDetector = null;
+  if (audio && musicMutedBeforeMic !== null) {
+    audio.muted = musicMutedBeforeMic;
+    musicMutedBeforeMic = null;
   }
 }
+
+window.addEventListener('pagehide', stopMicBlow);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && (micListening || micStarting)) {
+    stopMicBlow();
+    if (!state.candlesBlown) updateBlowInstruction('tap-only');
+  }
+});
 
 function updateBlowInstruction(mode) {
   const instr = document.getElementById('blow-instruction');
   const meter = document.getElementById('blow-meter-container');
   const micBtnWrapper = document.getElementById('mic-btn-wrapper');
+  const micBtn = document.getElementById('enable-mic-btn');
   if (!instr) return;
 
-  if (mode === 'mic-active') {
-    instr.innerHTML = '🌬️ <strong>Thổi vào micro</strong> hoặc 👆 <strong>chạm bánh</strong> để thổi nến nhé!';
-    if (meter) meter.style.display = 'block';
-    if (micBtnWrapper) micBtnWrapper.style.display = 'none';
-  } else {
-    instr.innerHTML = '👆 <strong>Chạm / Click vào bánh</strong> để thổi nến nhé! 🕯️';
-    if (meter) meter.style.display = 'none';
-    if (micBtnWrapper) micBtnWrapper.style.display = 'block';
+  const messages = {
+    'mic-starting': '🎤 Đang mở micro… Em cho phép dùng micro nhé!',
+    'mic-calibrating': '🤫 Giữ yên khoảng 2 giây để đo tiếng nền, rồi hãy thổi nhé!',
+    'mic-active': '🌬️ <strong>Thổi gần micro khoảng nửa giây</strong> hoặc 👆 <strong>chạm bánh</strong> nhé!',
+    'tap-only': '👆 <strong>Chạm bánh</strong> hoặc <strong>bật micro</strong> để thổi nến nhé! 🕯️',
+  };
+  const message = messages[mode] || messages['tap-only'];
+  if (instr.innerHTML !== message) instr.innerHTML = message;
+  if (meter) meter.style.display = mode === 'mic-active' || mode === 'mic-calibrating' ? 'block' : 'none';
+  if (micBtnWrapper) micBtnWrapper.style.display = 'block';
+  if (micBtn) {
+    const label = mode === 'tap-only'
+      ? '<i class="fas fa-microphone"></i> Bật micro để thổi nến'
+      : '<i class="fas fa-microphone-slash"></i> Tắt micro';
+    if (micBtn.innerHTML !== label) micBtn.innerHTML = label;
   }
 }
 

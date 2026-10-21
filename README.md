@@ -5,7 +5,7 @@ Trang web sinh nhật cảm xúc và interactive dành tặng **Hạnh** – em 
 ## 🌟 Tính Năng
 
 - 🔐 **Màn hình đăng nhập** với mật khẩu bí mật
-- 🎂 **Bánh sinh nhật interactive** – click để thổi nến với hiệu ứng pháo hoa
+- 🎂 **Bánh sinh nhật interactive** – chạm bánh hoặc bật micro để thổi nến với hiệu ứng pháo hoa
 - 🧾 **Hóa đơn tình yêu** – Love Receipt với animation đẹp
 - ⏰ **Đồng hồ đếm thời gian** yêu nhau (theo giây thực)
 - 📅 **Timeline kỷ niệm** – những mốc quan trọng của hai người
@@ -25,6 +25,15 @@ Trang web sinh nhật cảm xúc và interactive dành tặng **Hạnh** – em 
 5. Mở `index.html` trên trình duyệt hoặc deploy lên GitHub Pages
 
 ## ✏️ Tùy Chỉnh
+
+### Thổi nến bằng micro
+
+- Bấm **Bật micro để thổi nến**, cấp quyền rồi giữ yên khoảng 2 giây để đo tiếng nền.
+- Khi hiện hướng dẫn thổi, thổi gần micro liên tục khoảng nửa giây. Nhạc nền tạm im khi micro bật và tự khôi phục khi tắt micro hoặc thổi xong.
+- Có thể bấm **Tắt micro** để thử lại bước đo tiếng nền. Chạm bánh vẫn hoạt động khi không dùng được micro.
+- Micro cần HTTPS (ví dụ GitHub Pages) hoặc localhost.
+
+Kiểm tra bộ nhận diện và luồng micro bằng Node.js: `node --test tests/blow-detection.test.cjs`.
 
 Tất cả thông tin cá nhân được lưu trong `js/config.js`:
 

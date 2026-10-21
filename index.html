@@ -163,21 +163,21 @@
     </div>
 
     <p id="blow-instruction" class="blow-instruction">
-      👆 Chạm / Click vào bánh để thổi nến nhé! 🕯️
+      👆 Chạm bánh hoặc bật micro để thổi nến nhé! 🕯️
     </p>
 
     <!-- Breath / Mic meter (active when mic is listening) -->
     <div id="blow-meter-container" class="blow-meter-container" style="display:none;">
       <div class="blow-meter-label">
         <i class="fas fa-microphone" style="color:var(--pink-500);"></i>
-        <span>Đang nghe tiếng thổi:</span>
+        <span>Tiến độ thổi nến:</span>
       </div>
       <div class="blow-meter-track">
         <div id="blow-meter-bar" class="blow-meter-bar"></div>
       </div>
     </div>
 
-    <!-- Optional mic button if browser blocked autoplay mic or user wants to toggle -->
+    <!-- Microphone is opt-in; music is muted while listening. -->
     <div id="mic-btn-wrapper" style="margin-top:0.8rem;">
       <button id="enable-mic-btn" class="mic-request-btn" onclick="requestMicPermission()">
         <i class="fas fa-microphone"></i> Bật micro để thổi nến
@@ -573,6 +573,7 @@
      SCRIPTS
      ============================================ -->
 <script src="./js/config.js"></script>
+<script src="./js/blow-detector.js"></script>
 <script src="./js/main.js"></script>
 
 <script>
