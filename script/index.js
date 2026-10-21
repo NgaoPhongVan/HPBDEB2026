@@ -286,7 +286,8 @@ function createCandles() {
 }
 
 function stopMicrophoneDetection() {
-  document.getElementById("micLevel").hidden = true;
+  const micLevel = document.getElementById("micLevel");
+  if (micLevel) micLevel.hidden = true;
   micSessionId++;
   micRequestPending = false;
   isListening = false;
@@ -378,7 +379,8 @@ function setupAudioAnalysis(stream, sessionId) {
     stopMicrophoneDetection();
     return requestMicPermission();
   };
-  document.getElementById("micLevel").hidden = false;
+  const micLevel = document.getElementById("micLevel");
+  if (micLevel) micLevel.hidden = false;
   blowInstruction.textContent = "🎤 Giữ yên lặng khoảng 2 giây để mic đo tiếng nền...";
 
   stream.getTracks().forEach((track) => {
@@ -399,7 +401,8 @@ function setupAudioAnalysis(stream, sessionId) {
     analyser.getFloatTimeDomainData(waveform);
     analyser.getFloatFrequencyData(spectrum);
     const result = detector.update(now, waveform, spectrum);
-    document.getElementById("micLevelBar").style.width = Math.round((result.level || 0) * 100) + "%";
+    const micLevelBar = document.getElementById("micLevelBar");
+    if (micLevelBar) micLevelBar.style.width = Math.round((result.level || 0) * 100) + "%";
     const instruction = result.calibrating
       ? "🎤 Giữ yên lặng khoảng 2 giây để mic đo tiếng nền..."
       : "🌬️ Sẵn sàng! Thổi gần mic khoảng nửa giây. Nhấn đây để đo lại.";

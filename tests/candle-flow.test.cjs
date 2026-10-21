@@ -14,7 +14,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-function app({ getUserMedia = async () => stream(), supported = true } = {}) {
+function app({ getUserMedia = async () => stream(), supported = true, withMeter = true } = {}) {
   const elements = new Map();
   const events = {};
   const frames = new Map();
@@ -40,6 +40,7 @@ function app({ getUserMedia = async () => stream(), supported = true } = {}) {
   const document = {
     hidden: false, body: element(), documentElement: element(),
     getElementById(id) {
+      if (!withMeter && (id === "micLevel" || id === "micLevelBar")) return null;
       if (!elements.has(id)) elements.set(id, element());
       return elements.get(id);
     },
@@ -261,4 +262,12 @@ test("the instruction button can recalibrate without replaying the birthday sequ
   assert.match(ui.elements.get("blowInstruction").textContent, /đo tiếng nền/);
   assert.equal(ui.sandbox.state().candlesBlown, false);
   assert.equal(ui.sandbox.state().isListening, true);
+});
+
+test("a cached page without the new meter still completes the microphone flow", async () => {
+  const ui = app({ withMeter: false }); ui.enterCake(); await ui.sandbox.requestMicPermission();
+  for (let now = 0; now <= 3000; now += 20) ui.frame(now);
+  ui.contexts[0].analyser.rms = 0.15;
+  for (let now = 3020; now <= 3500; now += 20) ui.frame(now);
+  assert.equal(ui.sandbox.state().candlesBlown, true);
 });
