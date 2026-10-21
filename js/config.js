@@ -1,147 +1,199 @@
-/**
- * =========================================
- * CONFIG.JS - Tất cả thông tin cá nhân
- * Chỉnh sửa file này để thay đổi nội dung!
- * =========================================
- */
+// =========================================================
+//  CONFIG – Sinh Nhật Em Bé 2026
+//  Chỉnh thông tin tại đây, tất cả nơi khác tự cập nhật
+// =========================================================
+
 const CONFIG = {
-  // ===== THÔNG TIN CÁ NHÂN =====
+  // --- Thông tin cơ bản ---
   name: "Hạnh",
   nicknames: ["em bé", "em bé be", "em bé iu"],
   age: 23,
-  birthYear: 2003,
-  myName: "anh",
+  birthday: "2003-10-14",
 
-  // ===== MẬT KHẨU ĐĂNG NHẬP =====
-  password: "09012024", // Ngày chính thức yêu nhau
+  // --- Thông tin tình yêu ---
+  firstMet: "18/04/2023",
+  firstMetFull: "Ngày 18 tháng 04 năm 2023",
+  together: "09/01/2024",
+  togetherFull: "Ngày 09 tháng 01 năm 2024",
+  password: "09012024",
 
-  // ===== NGÀY THÁNG QUAN TRỌNG =====
-  dates: {
-    firstMet: new Date("2023-04-18"),      // Ngày đầu gặp nhau
-    together: new Date("2024-01-09"),       // Ngày chính thức yêu nhau
-    birthday: new Date("2003-10-14"),       // Ngày sinh
-  },
+  // --- Tên người gửi ---
+  senderName: "Anh",
+  senderNickname: "người yêu của em",
 
-  // ===== TIMELINE SỰ KIỆN =====
-  timeline: [
-    {
-      date: "18/04/2023",
-      emoji: "💕",
-      title: "Ngày Đầu Gặp Nhau",
-      desc: "Cái ngày mà anh không ngờ sẽ thay đổi cả cuộc đời anh. Em xuất hiện với nụ cười đó... anh chịu thua từ phút đầu tiên rồi 😊",
-      img: "./images/part1.jpg"
-    },
-    {
-      date: "09/01/2024",
-      emoji: "💖",
-      title: "Chính Thức Bên Nhau",
-      desc: "Ngày đẹp nhất trong cuộc đời anh – ngày em đồng ý làm người yêu của anh. Em có biết anh vui đến mức nào không? 🥹",
-      img: "./images/part2.jpg"
-    },
-    {
-      date: "Mùa hè 2024",
-      emoji: "🌊",
-      title: "Sầm Sơn Cùng Nhau",
-      desc: "Chuyến đi biển đầu tiên bên nhau. Chụp trái tim trên cát, ngắm hoàng hôn cùng nhau – những khoảnh khắc không thể nào quên 🌅",
-      img: "./images/samson.jpg"
-    },
-    {
-      date: "2024",
-      emoji: "🏛️",
-      title: "Khám Phá Bảo Tàng",
-      desc: "Đi bảo tàng cùng em, anh khám phá ra rằng: điều thú vị nhất không phải là hiện vật trong bảo tàng mà là em đứng cạnh anh 😄",
-      img: "./images/baotang.jpg"
-    },
-    {
-      date: "2024",
-      emoji: "🛍️",
-      title: "Đi Mua Sắm Cùng Nhau",
-      desc: "Trung tâm thương mại, tay trong tay, em thử đủ thứ còn anh đứng nhìn em và thấy mình là người hạnh phúc nhất trên đời 💝",
-      img: "./images/mall1.jpg"
-    },
-    {
-      date: "2024",
-      emoji: "🎓",
-      title: "Anh Tốt Nghiệp",
-      desc: "Ngày trọng đại của anh và em là người đầu tiên anh muốn chia sẻ niềm vui. Cảm ơn em luôn ở đây cổ vũ cho anh 🎊",
-      img: "./images/totnghiep.jpg"
-    },
-    {
-      date: "14/10/2026",
-      emoji: "🎂",
-      title: "Sinh Nhật Em Lần Này",
-      desc: "23 tuổi rồi em bé ơi! Mỗi năm qua anh lại càng thấy mình may mắn vì có em. Chúc mừng sinh nhật em yêu! 🎉",
-      img: "./images/embebecamchao.jpeg"
-    },
+  // --- Music ---
+  musicFile: "./music/Perfect_Ed-Sheeran.mp3",
+
+  // --- Profile photo (dùng trong section-six) ---
+  profilePhoto: "./images/embebecamchao.jpeg",
+
+  // --- Lời chúc trong chatbox (section-four) ---
+  chatboxMessage:
+    "Sinh nhật em bé iu của anh! 23 tuổi rồi mà vẫn dễ thương hết sức vậy nè 🥺 Anh chúc em luôn vui, luôn khoẻ, luôn tự tin vào bản thân. Cảm ơn em đã xuất hiện trong cuộc đời anh và cho anh cơ hội được yêu em mỗi ngày. Anh yêu em nhiều lắm, em bé iu ơi! 💕",
+
+  // --- Idea texts (section-five) ---
+  ideas: [
+    "Đó là điều anh định nói.",
+    "Nhưng rồi anh nhận ra...",
+    "Anh cần làm điều gì đó\n<strong>đặc biệt hơn</strong>",
+    "Vì...",
+    "Em thật sự đặc biệt ✨",
   ],
 
-  // ===== ẢNH GALLERY =====
-  gallery: [
-    { src: "./images/tet.jpg", caption: "Tết em bé chụp cho anh 🌸" },
-    { src: "./images/samson.jpg", caption: "Trái tim ở Sầm Sơn 🌊" },
-    { src: "./images/samson2.jpg", caption: "Selfie ở Sầm Sơn 😍" },
-    { src: "./images/gachno.jpg", caption: "Nắm tay đi chơi 💑" },
-    { src: "./images/mall1.jpg", caption: "Đi trung tâm thương mại ♥️" },
-    { src: "./images/mall2.jpg", caption: "Vẫn ở mall, vẫn đáng yêu 💕" },
-    { src: "./images/totnghiep.jpg", caption: "Anh bé tốt nghiệp 🎓" },
-    { src: "./images/baotang.jpg", caption: "Đi bảo tàng cùng nhau 🏛️" },
-    { src: "./images/embebecamchao.jpeg", caption: "Em bé cầm chào 🍳" },
-    { src: "./images/embebeslay.jpeg", caption: "Em bé slay 💅" },
-    { src: "./images/embebeban.jpeg", caption: "Em bé bắn 🎯" },
-    { src: "./images/embebemam.jpeg", caption: "Em bé mam 🍜" },
-  ],
+  // --- Wish (section-six) ---
+  wishText: "Sinh nhật em bé iu!",
+  wishSubtext: "Chúc em mãi mãi hạnh phúc và được yêu thương! 🌟",
 
-  // ===== HÓA ĐƠN TÌNH YÊU =====
+  // --- Cake ---
+  cakeTitle: "Ước gì đi em bé... 🌟",
+  blowInstruction: "🎤 Nhấn vào đây để bật mic, rồi thổi nến (hoặc nhấn vào bánh)!",
+  blownMessage: "🎊 Điều ước đã được gửi lên những vì sao! 🎊\nChúc mọi điều ước của em đều thành sự thật! ✨",
+
+  // --- Love Receipt ---
   receipt: {
     title: "HÓA ĐƠN TÌNH YÊU",
-    subtitle: "Best Girlfriend Inc. ™",
+    subtitle: "Best Girlfriend Inc. ❤️",
+    address: "Ngôi sao số 1, Vũ trụ tình yêu",
+    date: "14/10/2026",
+    cashier: "Người yêu của em",
     items: [
-      { label: "Thời gian yêu nhau", value: "Hơn 1 năm rưỡi ♾️" },
-      { label: "Ngày đầu gặp nhau", value: "18/04/2023 💕" },
-      { label: "Ngày chính thức yêu", value: "09/01/2024 💖" },
-      { label: "Chuyến phiêu lưu cùng nhau", value: "Nhiều lắm 🎈" },
+      { label: "Thời gian yêu nhau", value: "Hơn 1 năm 9 tháng 💑" },
+      { label: "Lần đầu gặp nhau", value: "18/04/2023 🌸" },
+      { label: "Ngày chính thức yêu", value: "09/01/2024 💍" },
+      { label: "Cuộc phiêu lưu cùng nhau", value: "Nhiều lắm 🎈" },
       { label: "Tiếng cười đã chia sẻ", value: "Vô số 😂" },
-      { label: "Inside jokes", value: "Quá nhiều!" },
-      { label: "Bữa ăn cùng nhau", value: "Hàng trăm 🍜" },
-      { label: "Kỷ niệm đã tạo", value: "∞ Vô hạn" },
-      { label: "Mức độ yêu em", value: "HẾT MỨC ❤️‍🔥" },
+      { label: "Lần cãi nhau (giả vờ)", value: "Đã hoà giải hết 😄" },
+      { label: "Inside jokes", value: "Quá nhiều để đếm!" },
+      { label: "Kỷ niệm đã tạo ra", value: "∞ Vô hạn" },
+      { label: "Lần anh nói yêu em", value: "Mỗi ngày ❤️" },
     ],
     total: "VÔ GIÁ ❤️",
-    totalLabel: "TỔNG GIÁ TRỊ TÌNH YÊU:",
-    signature: "– anh iu em 🫶",
-    footer: "Cảm ơn em đã chọn anh ♡",
+    totalLabel: "TỔNG CỘNG",
+    signature: "Ký tên: Người yêu em mãi mãi 💖",
+    thankYou: "Cảm ơn em đã là em bé iu của anh!",
   },
 
-  // ===== LỜI CHÚC SINH NHẬT =====
-  birthdayMessage: `Em bé iu ơi,
-
-Hôm nay em tròn 23 tuổi rồi. Anh không biết nói gì nhiều, chỉ biết rằng mỗi ngày bên em là một ngày anh thấy mình thật may mắn.
-
-Em là người làm cho những ngày bình thường trở nên đặc biệt. Là người mà anh muốn kể mọi chuyện dù lớn dù nhỏ. Là người mà chỉ cần nhìn thấy thôi là lòng anh đã nhẹ đi rồi.
-
-Chúc em sinh nhật vui vẻ, luôn khỏe mạnh, xinh đẹp và hạnh phúc. Anh mong mình sẽ được ở cạnh em thật lâu, được tạo thêm thật nhiều kỷ niệm, được cùng em trải qua thêm nhiều sinh nhật nữa.
-
-Em bé iu của anh – anh yêu em! 💕`,
-
-  // ===== LỜI NHẮN NGẪU NHIÊN =====
-  randomMessages: [
-    "Em bé ơi, chỉ cần em cười thôi là ngày của anh đã hoàn hảo rồi 💕",
-    "Anh nghĩ về em... suốt cả ngày mà không chán 😊",
-    "Em là lý do anh luôn muốn trở về nhà 🏠❤️",
-    "Cảm ơn em đã luôn hiểu anh và yêu anh theo cách của em 🥹",
-    "Em bé be của anh – cute nhất thế giới này! 🌟",
-    "Mỗi khi em cười, anh muốn dừng thời gian lại 📸",
-    "Anh iu em bé iu lắm lắm lắm luôn 💗",
-    "Em là người mà anh muốn nhắn tin đầu tiên khi có điều gì đó xảy ra 📱",
-    "Nếu được chọn lại, anh vẫn sẽ chọn em – không cần suy nghĩ 💫",
-    "Em bé iu ơi, hôm nay em có nhớ anh không? Anh đang nhớ em đây 🥺",
-    "Yêu em theo từng phút từng giây, không bao giờ chán 💝",
-    "Em bé be, em là của anh, anh là của em nha! ✨",
+  // --- Timeline / Câu chuyện của chúng ta ---
+  timeline: [
+    {
+      emoji: "🌸",
+      date: "18/04/2023",
+      title: "Lần đầu gặp nhau",
+      description:
+        "Cái ngày mà anh không biết là sẽ thay đổi cuộc đời anh mãi mãi. Em xuất hiện và mọi thứ bắt đầu từ đó...",
+      image: "./images/part1.jpg",
+    },
+    {
+      emoji: "💬",
+      date: "2023",
+      title: "Những tin nhắn đầu tiên",
+      description:
+        "Hồi đó nhắn tin cả ngày mà không thấy chán, không biết tại sao lúc đó lại dám nhắn nhiều vậy 😂",
+      image: "./images/tinnhan.jpg",
+    },
+    {
+      emoji: "🎡",
+      date: "2023",
+      title: "Những buổi đi chơi cùng nhau",
+      description:
+        "Mall, quán café, lang thang khắp nơi... Mỗi chuyến đi đều để lại kỷ niệm trong tim anh.",
+      image: "./images/mall1.jpg",
+    },
+    {
+      emoji: "💕",
+      date: "09/01/2024",
+      title: "Chính thức là của nhau",
+      description:
+        "Ngày đặc biệt nhất – ngày anh được gọi em là người yêu, ngày anh hứa sẽ luôn ở bên em.",
+      image: "./images/embebeban.jpeg",
+    },
+    {
+      emoji: "🐱",
+      date: "2024",
+      title: "Samson – thành viên bé nhỏ",
+      description:
+        "Con mèo nhỏ xíu mà yêu lắm, cũng như em vậy – nhỏ nhưng chiếm hết trái tim anh rồi 🐾",
+      image: "./images/samson.jpg",
+    },
+    {
+      emoji: "🎓",
+      date: "2024",
+      title: "Tốt nghiệp rồi em ơi!",
+      description:
+        "Em đã cố gắng rất nhiều. Nhìn em trong bộ áo tốt nghiệp, anh tự hào em lắm nha em bé!",
+      image: "./images/totnghiep.jpg",
+    },
+    {
+      emoji: "🎊",
+      date: "2025",
+      title: "Tết cùng nhau",
+      description:
+        "Cái Tết đầu tiên bên nhau, ngắm pháo hoa, ăn bánh chưng, chúc nhau những điều tốt đẹp nhất.",
+      image: "./images/tet.jpg",
+    },
+    {
+      emoji: "🛍️",
+      date: "2025",
+      title: "Đi mall – hobby chung",
+      description:
+        "Shopping, ăn uống, ngồi cafe... Anh thích nhất là nhìn em vui khi tìm được thứ mình thích 😄",
+      image: "./images/mall2.jpg",
+    },
+    {
+      emoji: "💪",
+      date: "2025",
+      title: "Em bé đi làm rồi",
+      description:
+        "Nhìn em chăm chỉ làm việc, anh thấy yêu em hơn mỗi ngày. Em bé của anh giỏi giang lắm!",
+      image: "./images/embebelamviec.jpeg",
+    },
+    {
+      emoji: "📸",
+      date: "2026",
+      title: "Bộ sưu tập những khoảnh khắc",
+      description:
+        "Mỗi tấm ảnh chụp chung là một kỷ niệm anh sẽ giữ mãi. Em bé đẹp nhất trong mắt anh!",
+      image: "./images/ghephinhjpg.jpg",
+    },
   ],
 
-  // ===== MUSIC =====
-  music: {
-    src: "./music/Perfect_Ed-Sheeran.mp3",
-    title: "Perfect – Ed Sheeran",
-  },
+  // --- Quiz ---
+  quiz: [
+    {
+      question: "Ngày anh và em chính thức yêu nhau là ngày nào? 💑",
+      options: ["09/01/2024", "18/04/2023", "14/10/2023", "01/09/2024"],
+      correct: 0,
+      explanation: "Đúng rồi! 09/01/2024 – ngày chúng mình chính thức là của nhau 💕",
+    },
+    {
+      question: "Anh thường gọi em là gì? 🥰",
+      options: ["Em yêu", "Em bé iu", "Cục cưng", "Baby"],
+      correct: 1,
+      explanation: "Đúng! Em bé iu – cái tên dễ thương nhất thế giới 🥺",
+    },
+    {
+      question: "Lần đầu tiên anh và em gặp nhau là vào ngày nào? 🌸",
+      options: ["09/01/2024", "14/10/2023", "18/04/2023", "01/06/2023"],
+      correct: 2,
+      explanation: "18/04/2023 – ngày anh gặp em lần đầu và mọi thứ thay đổi từ đó! 🌸",
+    },
+    {
+      question: "Em bé năm nay bao nhiêu tuổi? 🎂",
+      options: ["21 tuổi", "22 tuổi", "23 tuổi", "24 tuổi"],
+      correct: 2,
+      explanation: "23 tuổi rồi! Em bé lớn rồi mà vẫn dễ thương lắm nha 🥺",
+    },
+    {
+      question: "Con mèo nhỏ của chúng mình tên là gì? 🐱",
+      options: ["Mimi", "Samson", "Tom", "Lulu"],
+      correct: 1,
+      explanation: "Samson! Bé mèo nhỏ xíu chiếm hết tình thương rồi 🐾",
+    },
+  ],
+
+  // --- Final section ---
+  finalMessage: "Sinh nhật em bé iu! 🎂💘",
+  finalQuestion: "Em có thích không? 💕",
+  replayText: "Xem lại từ đầu nhé! 🔄",
+  foreverText: "Mãi mãi là của nhau! 💖",
 };
