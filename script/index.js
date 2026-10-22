@@ -108,9 +108,7 @@ openBtn.addEventListener("click", (e) => {
       });
 
     // Ambient effects
-    startBalloons();
-    startConfetti();
-    startFireworks();
+    startCelebrationEffects();
 
     // Chạy GSAP animation timeline
     initGsapTimeline();
@@ -423,8 +421,13 @@ document.addEventListener("visibilitychange", () => {
     stopMicrophoneDetection();
     showMicrophonePrompt();
   }
+  if (document.hidden) clearCelebrationEffects();
+  else if (celebrationActive) startCelebrationEffects();
 });
-window.addEventListener("pagehide", stopMicrophoneDetection);
+window.addEventListener("pagehide", () => {
+  stopMicrophoneDetection();
+  stopCelebrationEffects();
+});
 
 function blowCandles() {
   if (candlesBlown || !waitingForCandles) return;
@@ -447,10 +450,10 @@ function blowCandles() {
     blowInstruction.style.display = "none";
     blownMessage.classList.add("show");
 
-    for (let i = 0; i < 7; i++) {
-      setTimeout(() => {
+    for (let i = 0; i < (useLightEffects() ? 3 : 5); i++) {
+      scheduleCelebration(() => {
         createFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight / 2));
-      }, i * 350);
+      }, i * 450);
     }
 
     // Sau khi hiện lời chúc và pháo hoa 4 giây -> fade out bánh kem -> mở Hóa Đơn Tình Yêu
@@ -470,6 +473,7 @@ function blowCandles() {
 // 6. LOVE RECEIPT (HÓA ĐƠN TÌNH YÊU)
 // ══════════════════════════════════════════════════
 function openReceiptOverlay() {
+  stopCelebrationEffects();
   receiptOverlay.style.display = "flex";
 
   // Animate các dòng hóa đơn xuất hiện lần lượt
@@ -492,19 +496,13 @@ receiptNextBtn.addEventListener("click", () => {
       transitionToThatDay();
     },
   });
-
-  // Pháo hoa ăn mừng
-  for (let i = 0; i < 7; i++) {
-    setTimeout(() => {
-      createFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight * 0.5));
-    }, i * 300);
-  }
 });
 
 // ══════════════════════════════════════════════════
 // 7. TRANSITION SANG THATDAY (100% AUTHENTIC)
 // ══════════════════════════════════════════════════
 function transitionToThatDay() {
+  stopCelebrationEffects();
   // Ẩn timeline container cũ
   tlContainer.style.display = "none";
   tlContainer.classList.remove("active");
@@ -1018,6 +1016,7 @@ function replayAll(event) {
   musicIcon.textContent = "🔊";
 
   // Restart GSAP timeline
+  startCelebrationEffects();
   if (tl) {
     tl.restart();
   }
@@ -1026,70 +1025,121 @@ function replayAll(event) {
 // ══════════════════════════════════════════════════
 // 17. AMBIENT EFFECTS (Balloons, Confetti, Fireworks)
 // ══════════════════════════════════════════════════
+// One timer per emitter; particles use finite CSS animations, never JS frame loops.
+let celebrationActive = false;
+const celebrationTimers = new Set();
+const celebrationEmitters = new Map();
+const celebrationNodes = new Set();
+
+function useLightEffects() {
+  return window.innerWidth < 768 || !!window.matchMedia?.("(pointer: coarse)").matches;
+}
+
+function scheduleCelebration(callback, delay) {
+  const id = setTimeout(() => {
+    celebrationTimers.delete(id);
+    if (celebrationActive && !document.hidden) callback();
+  }, delay);
+  celebrationTimers.add(id);
+  return id;
+}
+
+function clearCelebrationEffects() {
+  celebrationTimers.forEach((id) => clearTimeout(id));
+  celebrationTimers.clear();
+  celebrationEmitters.clear();
+  celebrationNodes.forEach((node) => node.remove());
+  celebrationNodes.clear();
+}
+
+function stopCelebrationEffects() {
+  celebrationActive = false;
+  clearCelebrationEffects();
+}
+
+function startCelebrationEffects() {
+  celebrationActive = true;
+  if (document.hidden || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  startBalloons();
+  startConfetti();
+  startFireworks();
+}
+
+function startCelebrationEmitter(name, delay, emit) {
+  if (celebrationEmitters.has(name)) return;
+  function tick() {
+    emit();
+    celebrationEmitters.set(name, scheduleCelebration(tick, delay));
+  }
+  celebrationEmitters.set(name, scheduleCelebration(tick, delay));
+}
+
+function addCelebrationNode(node, lifetime) {
+  if (!celebrationActive || document.hidden ||
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
+      celebrationNodes.size >= (useLightEffects() ? 56 : 140)) return;
+  celebrationNodes.add(node);
+  document.body.appendChild(node);
+  scheduleCelebration(() => {
+    node.remove();
+    celebrationNodes.delete(node);
+  }, lifetime);
+}
+
 function startBalloons() {
   const emojis = ["🎈", "🎀", "💕", "🌸"];
-  setInterval(() => {
+  startCelebrationEmitter("balloons", useLightEffects() ? 3200 : 1800, () => {
     const b = document.createElement("div");
     b.className = "balloon";
     b.textContent = emojis[Math.floor(Math.random() * emojis.length)];
     b.style.left = Math.random() * 100 + "%";
-    b.style.animationDuration = 12 + Math.random() * 8 + "s";
-    b.style.animationDelay    = Math.random() * 2 + "s";
-    document.body.appendChild(b);
-    setTimeout(() => b.remove(), 16000);
-  }, 1400);
+    const duration = 8000 + Math.random() * 2000;
+    b.style.animationDuration = duration + "ms";
+    addCelebrationNode(b, duration);
+  });
 }
 
 function startConfetti() {
   const colors = ["#FF4DA6", "#FFD54F", "#00E5FF", "#a855f7", "#48c774", "#FFAAEA", "#EAC435"];
-  setInterval(() => {
+  startCelebrationEmitter("confetti", useLightEffects() ? 500 : 220, () => {
     const c = document.createElement("div");
     c.className = "confetti";
     c.style.left = Math.random() * 100 + "%";
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-    c.style.animationDuration = 3 + Math.random() * 2 + "s";
-    c.style.animationDelay    = Math.random() + "s";
+    const duration = 2500 + Math.random() * 1000;
+    c.style.animationDuration = duration + "ms";
     c.style.borderRadius     = Math.random() > 0.5 ? "50%" : "2px";
-    document.body.appendChild(c);
-    setTimeout(() => c.remove(), 6000);
-  }, 160);
+    addCelebrationNode(c, duration);
+  });
 }
 
 function createFirework(x, y) {
+  if (!celebrationActive || document.hidden ||
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
   const colors = ["#FF4DA6", "#FFD54F", "#00E5FF", "#a855f7", "#FFAAEA", "#EAC435", "#FB4D3D"];
-  for (let i = 0; i < 36; i++) {
+  const count = useLightEffects() ? 14 : 28;
+  const radius = useLightEffects() ? 90 : 150;
+  for (let i = 0; i < count; i++) {
     const f = document.createElement("div");
     f.className = "firework";
     f.style.left = x + "px";
     f.style.top  = y + "px";
     f.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
 
-    const angle = (Math.PI * 2 * i) / 36;
-    const vel   = 2 + Math.random() * 3.5;
-    document.body.appendChild(f);
-
-    let px = x;
-    let py = y;
-    let vx = Math.cos(angle) * vel;
-    let vy = Math.sin(angle) * vel;
-
-    const anim = setInterval(() => {
-      vy += 0.14;
-      px += vx;
-      py += vy;
-      f.style.left = px + "px";
-      f.style.top  = py + "px";
-
-      if (py > window.innerHeight) {
-        clearInterval(anim);
-        f.remove();
-      }
-    }, 16);
+    const angle = (Math.PI * 2 * i) / count;
+    const distance = radius * (0.5 + Math.random() * 0.5);
+    const dx = Math.cos(angle) * distance;
+    const dy = Math.sin(angle) * distance;
+    f.style.setProperty("--burst-x-mid", dx * 0.6 + "px");
+    f.style.setProperty("--burst-y-mid", dy * 0.6 + 12 + "px");
+    f.style.setProperty("--burst-x", dx + "px");
+    f.style.setProperty("--burst-y", dy + 65 + "px");
+    addCelebrationNode(f, 1200);
   }
 }
 
 function startFireworks() {
-  setInterval(() => {
+  startCelebrationEmitter("fireworks", useLightEffects() ? 4000 : 2800, () => {
     createFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight / 2));
-  }, 2600);
+  });
 }

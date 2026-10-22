@@ -35,6 +35,12 @@ Kiểm tra nhận diện và vòng đời mic bằng Node.js (không cần cài 
 node --test tests/blow-detector.test.cjs tests/candle-flow.test.cjs
 ```
 
+Kiểm tra hiệu ứng trên điện thoại, giới hạn số hạt và dọn hiệu ứng khi chuyển chương:
+
+```sh
+node --test tests/celebration-effects.test.cjs
+```
+
 Nếu máy đã có FFmpeg, kiểm tra thêm các đoạn nhạc thật:
 
 ```sh

@@ -1911,15 +1911,14 @@ body.phase-thatday {
   position: fixed;
   bottom: -150px;
   font-size: 60px;
-  animation: floatUpBalloon 10s ease-in infinite;
+  animation: floatUpBalloon 10s ease-in both;
   z-index: 100;
-  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
   pointer-events: none;
 }
 @keyframes floatUpBalloon {
-  0% { bottom: -150px; opacity: 0; }
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
   10% { opacity: 1; }
-  100% { bottom: 110vh; opacity: 0; }
+  100% { transform: translate3d(0, calc(-110vh - 150px), 0); opacity: 0; }
 }
 
 .firework {
@@ -1929,20 +1928,35 @@ body.phase-thatday {
   border-radius: 50%;
   z-index: 50;
   pointer-events: none;
+  animation: fireworkBurst 1.2s linear both;
+}
+@keyframes fireworkBurst {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+  50% { transform: translate3d(var(--burst-x-mid), var(--burst-y-mid), 0) scale(0.8); opacity: 0.8; }
+  100% { transform: translate3d(var(--burst-x), var(--burst-y), 0) scale(0.2); opacity: 0; }
 }
 
 .confetti {
   position: fixed;
+  top: -20px;
   width: 10px;
   height: 10px;
   z-index: 50;
   pointer-events: none;
-  animation: confettiFall 4s linear infinite;
+  animation: confettiFall 4s linear both;
   border-radius: 2px;
 }
 @keyframes confettiFall {
-  0% { top: -20px; opacity: 1; transform: rotate(0deg); }
-  100% { top: 110vh; opacity: 0.5; transform: rotate(720deg); }
+  0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg); }
+  100% { opacity: 0; transform: translate3d(0, calc(110vh + 20px), 0) rotate(720deg); }
+}
+
+@media (max-width: 767px), (pointer: coarse) {
+  .balloon { font-size: 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .balloon, .confetti, .firework, .td-particle-sym, .td-star-twinkle { display: none; }
 }
 
 /* Music Control Button */
