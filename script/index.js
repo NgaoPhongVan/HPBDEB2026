@@ -732,7 +732,7 @@ const GALLERY_ITEMS = [
   { src: "./images/embebemam.jpeg",         title: "Măm 3 tô cơm i chòi" },
   { src: "./images/nhinta.jpg",             title: "Gì nhìn ta" },
   { src: "./images/Cú Đấm Điện Quang Anime.png", title: "Bít cú đấm sấm sét của ta chưa" },
-  { src: "./images/bitchua2.jpg",           title: "Bít chưa" },
+  { src: "./images/Nắm đấm điện lực dễ thương anime.png",           title: "Bít chưa" },
   { src: "./images/ngo.jpg",                title: "Gì mà ngó" },
   { src: "./images/nhinchamcham.jpg",       title: "Mắt to tròn nhìn chi" },
   { src: "./images/mattotron.jpg",    	    title: "Mắt to tròn đáng iu lun" },
