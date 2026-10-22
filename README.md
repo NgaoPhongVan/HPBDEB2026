@@ -41,6 +41,12 @@ Kiểm tra hiệu ứng trên điện thoại, giới hạn số hạt và dọn
 node --test tests/celebration-effects.test.cjs
 ```
 
+Kiểm tra font có đủ dấu tiếng Việt (Python với thư viện `fonttools`):
+
+```sh
+python tests/font-coverage.py
+```
+
 Nếu máy đã có FFmpeg, kiểm tra thêm các đoạn nhạc thật:
 
 ```sh

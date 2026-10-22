@@ -5,11 +5,10 @@
    Phase 3: ThatDay (Gurkirat-Singh-bit) authentic styling
    ===================================================== */
 
-/* ── Custom Fonts (ThatDay) ── */
+/* Local fonts with complete Vietnamese glyphs; avoid mixing system fallback glyphs. */
 @font-face {
-  font-family: "Cafe24Dongdong";
-  src: url("../fonts/Cafe24Dongdong-v2.0.woff2") format("woff2"),
-    url("../fonts/Cafe24Dongdong-v2.0.ttf") format("truetype");
+  font-family: "Patrick Hand";
+  src: url("../fonts/PatrickHand-Regular.woff") format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -25,9 +24,45 @@
 }
 
 @font-face {
-  font-family: "Nighthawk";
-  src: url("../fonts/Nighthawk.otf") format("opentype");
+  font-family: "Roboto Mono";
+  src: url("../fonts/RobotoMono-Variable.woff") format("woff");
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../fonts/BeVietnamPro-Light.woff") format("woff");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../fonts/BeVietnamPro-Regular.woff") format("woff");
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../fonts/BeVietnamPro-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../fonts/BeVietnamPro-SemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../fonts/BeVietnamPro-Bold.woff") format("woff");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -66,10 +101,11 @@
   --td-tomato-dark: #e03525;
 
   /* Fonts */
-  --font-display: "Cafe24Dongdong", cursive;
+  --font-display: "Patrick Hand", "Be Vietnam Pro", sans-serif;
   --font-signature: "MomoSignature", cursive;
-  --font-heading: "Nighthawk", sans-serif;
-  --font-body: "Poppins", sans-serif;
+  --font-heading: "Be Vietnam Pro", Arial, sans-serif;
+  --font-body: "Be Vietnam Pro", Arial, sans-serif;
+  --font-receipt: "Roboto Mono", monospace;
 }
 
 /* ── Base ── */
@@ -788,7 +824,8 @@ body.phase-thatday {
 
 .receipt-body {
   padding: 16px 28px 24px;
-  font-family: "Courier New", Courier, monospace;
+  font-family: var(--font-receipt);
+  line-height: 1.5;
 }
 
 .receipt-logo {
@@ -798,9 +835,9 @@ body.phase-thatday {
 }
 
 .receipt-title {
-  font-family: "Courier New", Courier, monospace;
+  font-family: var(--font-receipt);
   font-size: 1.4rem;
-  font-weight: 900;
+  font-weight: 700;
   text-align: center;
   letter-spacing: 3px;
   color: #1e1b2e;
@@ -868,7 +905,7 @@ body.phase-thatday {
 
 .total-label {
   font-size: 1.05rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 1.5px;
   color: #1e1b2e;
   margin-bottom: 4px;
@@ -876,7 +913,7 @@ body.phase-thatday {
 
 .total-val {
   font-size: 1.5rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #c00060;
   letter-spacing: 2px;
 }
