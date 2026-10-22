@@ -723,18 +723,27 @@ function initThatDayOrbitWords() {
 // 12. THATDAY: GALLERY
 // ══════════════════════════════════════════════════
 const GALLERY_ITEMS = [
-  { src: "./images/ghephinhjpg.jpg",       title: "Bức hình kỷ niệm ngọt ngào" },
-  { src: "./images/embebeban.jpeg",         title: "Em bé lúc nào cũng đáng yêu" },
-  { src: "./images/embebebangoai.jpeg",     title: "Đi chơi dạo mát cùng em bé" },
-  { src: "./images/embebecamchao.jpeg",     title: "Em bé cầm chảo cute xỉu" },
-  { src: "./images/embebeslay.jpeg",        title: "Em bé slay hết nấc ✨" },
-  { src: "./images/embebeliuliu.jpeg",      title: "Em bé liu liu nghịch ngợm" },
-  { src: "./images/embebemam.jpeg",         title: "Em bé măm măm ngon miệng" },
-  { src: "./images/mall1.jpg",              title: "Buổi đi mall đầu tiên" },
-  { src: "./images/mall2.jpg",              title: "Hẹn hò dạo phố cùng nhau" },
-  { src: "./images/samson.jpg",             title: "Bé mèo Samson dễ thương" },
-  { src: "./images/tet.jpg",                title: "Tết ấm áp bên em bé" },
-  { src: "./images/totnghiep.jpg",          title: "Tự hào ngày em tốt nghiệp" },
+  { src: "./images/be.jpg",        	    title: "Ủa ai chòi" },
+  { src: "./images/embebeban.jpeg",         title: "Gì bắn" },
+  { src: "./images/embebebangoai.jpeg",     title: "Hehe" },
+  { src: "./images/embebecamchao.jpeg",     title: "Oánh ta" },
+  { src: "./images/embebeslay.jpeg",        title: "Gì mà sì lay" },
+  { src: "./images/liuliu.jpg",             title: "Plè" },
+  { src: "./images/embebemam.jpeg",         title: "Măm 3 tô cơm i chòi" },
+  { src: "./images/nhinta.jpg",             title: "Gì nhìn ta" },
+  { src: "./images/Cú Đấm Điện Quang Anime.png", title: "Bít cú đấm sấm sét của ta chưa" },
+  { src: "./images/bitchua2.jpg",           title: "Bít chưa" },
+  { src: "./images/ngo.jpg",                title: "Gì mà ngó" },
+  { src: "./images/nhinchamcham.jpg",       title: "Mắt to tròn nhìn chi" },
+  { src: "./images/mattotron.jpg",    	    title: "Mắt to tròn đáng iu lun" },
+  { src: "./images/acha.jpeg",    	    title: "À chá" },
+  { src: "./images/mabanhbao.jpg",    	    title: "Má bánh bao của ai ta" },
+  { src: "./images/ansuachua.jpeg",    	    title: "Ehehe phải mới ăn sữa chua hong" },
+  { src: "./images/toctraitym.png",    	    title: "Tóc trái tym iu iu lun" },
+  { src: "./images/yetso.jpg",              title: "Yét sơ" },
+  { src: "./images/mungi.jpeg",              title: "Gì mún gì" },
+  { src: "./images/matto.jpg",              title: "Mắt to miệng to chòi" },
+  { src: "./images/dangiu.jpg",             title: "Ủa đáng iu em iu" },
 ];
 
 function initThatDayGallery() {
@@ -870,7 +879,7 @@ function showQuizResult() {
   if (quizScore === total) {
     emoji = "🏆 💖";
     title = "Tuyệt đối 100%!";
-    msg = `Không sai câu nào cả (${quizScore}/${total})! Em bé iu nhớ rõ từng kỷ niệm của hai đứa, anh thương em lắm! 🥺`;
+    msg = `Không sai câu nào cả (${quizScore}/${total})! Em bé iu nhớ rõ từng kỷ niệm của hai đứa, iu quá chòi! 🥺`;
   } else if (quizScore < 3) {
     emoji = "✨ 🌸";
     title = "Không sao hết nè!";
