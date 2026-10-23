@@ -16,6 +16,7 @@ const loadingText     = document.getElementById("loadingText");
 const cardOverlay     = document.getElementById("cardOverlay");
 const card            = document.getElementById("birthdayCard");
 const openBtn         = document.getElementById("openBtn");
+const skipIntroBtn    = document.getElementById("skipIntroBtn");
 
 const tlContainer     = document.getElementById("timelineContainer");
 const blowInstruction = document.getElementById("blowInstruction");
@@ -86,12 +87,18 @@ card.addEventListener("click", () => {
 // ══════════════════════════════════════════════════════
 // 3. START BUTTON -> GSAP TIMELINE
 // ══════════════════════════════════════════════════════
-openBtn.addEventListener("click", (e) => {
+openBtn.addEventListener("click", (e) => startBirthday(e));
+skipIntroBtn.addEventListener("click", (e) => startBirthday(e, true));
+
+function startBirthday(e, skipIntro = false) {
   e.stopPropagation();
+  if (openBtn.disabled) return;
+  openBtn.disabled = true;
+  skipIntroBtn.disabled = true;
   cardOverlay.classList.add("hidden");
 
   setTimeout(() => {
-    tlContainer.classList.add("active");
+    if (!skipIntro) tlContainer.classList.add("active");
     musicControl.style.display = "flex";
 
     // Phát đúng bài nhạc hbd.mpeg của repo gốc
@@ -107,13 +114,18 @@ openBtn.addEventListener("click", (e) => {
         console.log("Audio autoplay prevented by browser");
       });
 
+    if (skipIntro) {
+      openReceiptOverlay();
+      return;
+    }
+
     // Ambient effects
     startCelebrationEffects();
 
     // Chạy GSAP animation timeline
     initGsapTimeline();
   }, 800);
-});
+}
 
 // Music toggle
 musicControl.addEventListener("click", () => {
@@ -739,7 +751,7 @@ const GALLERY_ITEMS = [
   { src: "./images/ansuachua.jpeg",    	    title: "Ehehe phải mới ăn sữa chua hong" },
   { src: "./images/toctraitym.png",    	    title: "Tóc trái tym iu iu lun" },
   { src: "./images/yetso.jpg",              title: "Yét sơ" },
-  { src: "./images/mungi.jpeg",              title: "Gì mún gì" },
+  { src: "./images/mungi.jpeg",             title: "Gì mún gì" },
   { src: "./images/matto.jpg",              title: "Mắt to miệng to chòi" },
   { src: "./images/dangiu.jpg",             title: "Ủa đáng iu em iu" },
 ];

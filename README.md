@@ -10,6 +10,7 @@ Trang web sinh nhật dành riêng cho em bé iu năm 2026.
 
 - **Preloader** đẹp với thanh loading
 - **Flip card** dễ thương để mở bất ngờ
+- **Xem hóa đơn luôn** ngay trên thiệp mở đầu để bỏ qua lời chúc và thổi nến khi xem lại
 - **GSAP Animation Timeline** mượt mà, cảm xúc
 - **Thổi nến** qua microphone (hoặc click)
 - **Hóa đơn tình yêu** (Love Receipt) kiểu receipt giấy

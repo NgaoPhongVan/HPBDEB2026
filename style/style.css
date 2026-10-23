@@ -341,6 +341,30 @@ body.phase-thatday {
   box-shadow: 0 12px 30px rgba(255, 213, 79, 0.6);
 }
 
+.skip-intro-btn {
+  margin-top: 16px;
+  padding: 12px 18px;
+  border: 1px solid rgba(255, 170, 234, 0.5);
+  border-radius: 50px;
+  background: transparent;
+  color: var(--td-plum-light);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.skip-intro-btn:hover {
+  background: rgba(255, 170, 234, 0.1);
+  border-color: var(--td-plum);
+}
+
+.skip-intro-btn:focus-visible {
+  outline: 2px solid var(--hb-gold);
+  outline-offset: 4px;
+}
+
 /* Main Timeline Container */
 .timeline-container {
   display: none;
@@ -2054,6 +2078,7 @@ body.phase-thatday {
   }
   .card-front h1, .card-back h2 { font-size: 38px; }
   .card-front p, .card-back p { font-size: 16px; }
+  .card-back { padding: 24px; }
   .open-btn { padding: 14px 36px; font-size: 17px; }
 
   .section-one { font-size: 3rem; }

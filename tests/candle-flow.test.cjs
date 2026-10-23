@@ -110,6 +110,42 @@ function stream() {
   return { getTracks: () => [track], track };
 }
 
+test("the opening shortcut shows the receipt without a timeline, candles, or mic", async () => {
+  let requests = 0;
+  const ui = app({ getUserMedia: async () => { requests++; return stream(); } });
+  const event = { stopPropagation() {} };
+  ui.elements.get("skipIntroBtn").listeners.click(event);
+  // A second tap, including on the normal start button, cannot queue the intro.
+  ui.elements.get("openBtn").listeners.click(event);
+  ui.elements.get("skipIntroBtn").listeners.click(event);
+  ui.advanceTimers(800);
+  await Promise.resolve();
+  assert.equal(ui.elements.get("receiptOverlay").style.display, "flex");
+  assert.equal(ui.elements.get("timelineContainer").classList.contains("active"), false);
+  assert.equal(ui.elements.get("musicControl").style.display, "flex");
+  assert.equal(ui.elements.get("bgMusic").paused, false);
+  assert.equal(ui.sandbox.state().waitingForCandles, false);
+  assert.equal(ui.sandbox.state().candles.length, 0);
+  assert.equal(ui.contexts.length, 0);
+  assert.equal(requests, 0);
+  assert.equal(ui.timers.length, 0);
+});
+
+test("normal start still runs the birthday intro once", () => {
+  const ui = app();
+  vm.runInContext(`let intros = 0; let celebrations = 0;
+    initGsapTimeline = () => intros++;
+    startCelebrationEffects = () => celebrations++;`, ui.sandbox);
+  const event = { stopPropagation() {} };
+  ui.elements.get("openBtn").listeners.click(event);
+  ui.elements.get("skipIntroBtn").listeners.click(event);
+  ui.advanceTimers(800);
+  assert.equal(ui.elements.get("timelineContainer").classList.contains("active"), true);
+  assert.notEqual(ui.elements.get("receiptOverlay").style.display, "flex");
+  assert.equal(vm.runInContext("intros", ui.sandbox), 1);
+  assert.equal(vm.runInContext("celebrations", ui.sandbox), 1);
+});
+
 test("entering the cake step never automatically opens a previously permitted mic", () => {
   let requests = 0;
   const ui = app({ getUserMedia: async () => { requests++; return stream(); } });
