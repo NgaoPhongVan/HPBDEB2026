@@ -88,13 +88,13 @@ card.addEventListener("click", () => {
 // 3. START BUTTON -> GSAP TIMELINE
 // ══════════════════════════════════════════════════════
 openBtn.addEventListener("click", (e) => startBirthday(e));
-skipIntroBtn.addEventListener("click", (e) => startBirthday(e, true));
+skipIntroBtn?.addEventListener("click", (e) => startBirthday(e, true));
 
 function startBirthday(e, skipIntro = false) {
   e.stopPropagation();
   if (openBtn.disabled) return;
   openBtn.disabled = true;
-  skipIntroBtn.disabled = true;
+  if (skipIntroBtn) skipIntroBtn.disabled = true;
   cardOverlay.classList.add("hidden");
 
   setTimeout(() => {
